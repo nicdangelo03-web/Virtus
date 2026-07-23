@@ -103,47 +103,61 @@
     border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
   }
 
-  /* ===== Banner ===== */
+  /* ===== Banner — sleek dark with a soft neon-azure glow ===== */
   .banner {
     position: relative; overflow: hidden;
     border-radius: var(--radius); margin-bottom: 16px;
     padding: 16px 20px;
-    color: #fff;
-    background: linear-gradient(120deg, var(--accent) 0%, #6a5cff 55%, #1b3a8f 120%);
+    color: var(--text);
+    background:
+      radial-gradient(130% 150% at 92% -30%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 55%),
+      radial-gradient(120% 160% at 0% 130%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 50%),
+      var(--solid-card);
     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
   }
   .banner::after {
-    content: ""; position: absolute; right: -40px; top: -60px;
-    width: 240px; height: 240px; border-radius: 50%;
-    background: rgba(255,255,255,.08); pointer-events: none;
+    content: ""; position: absolute; right: -30px; top: -70px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%);
+    filter: blur(10px); pointer-events: none;
   }
   .banner-left { flex: 1; min-width: 240px; position: relative; z-index: 1; }
   .banner-left .hello { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
-  .banner-left .today { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1.2px; opacity: .85; font-size: 10px; margin-top: 5px; }
+  .banner-left .today { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-size: 10px; margin-top: 5px; }
   .banner-left .pill {
     display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
-    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+    background: var(--accent-dim); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent);
     padding: 5px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
   }
   .quote-box {
     position: relative; z-index: 1;
     flex: 1; min-width: 240px; max-width: 400px;
-    background: rgba(0,0,0,.22);
-    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-    border: 1px solid rgba(255,255,255,.22);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
     border-radius: 12px; padding: 14px 16px;
     text-align: right;
   }
-  .quote-box .mark { font-size: 34px; line-height: .6; opacity: .5; }
-  .quote-box .qtext { font-size: 16px; font-weight: 600; font-style: italic; margin: 6px 0 8px; }
-  .quote-box .qauthor { font-size: 12px; color: rgba(255,255,255,.92); }
+  .quote-box .mark { font-size: 34px; line-height: .6; color: var(--accent); opacity: .55; }
+  .quote-box .qtext { font-size: 15px; font-weight: 600; font-style: italic; margin: 4px 0 8px; color: var(--text); }
+  .quote-box .qauthor { font-size: 12px; color: var(--muted); }
   .quote-box .shuffle {
     position: absolute; top: 10px; left: 12px;
-    background: rgba(255,255,255,.2); border: none; color: #fff;
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
     width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 13px;
   }
-  .quote-box .shuffle:hover { background: rgba(255,255,255,.35); }
+  .quote-box .shuffle:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ===== Classic typography (switchable in Settings) — friendlier system sans, bold numbers ===== */
+  [data-font="classic"] { --font-mono: var(--font-sans); }
+  [data-font="classic"] .brand { text-transform: none; letter-spacing: normal; font-weight: 800; font-size: 19px; }
+  [data-font="classic"] .nav button { text-transform: none; letter-spacing: normal; font-size: 13.5px; font-weight: 600; }
+  [data-font="classic"] .stat .num,
+  [data-font="classic"] .streak-card .s-days { font-weight: 800; letter-spacing: normal; }
+  [data-font="classic"] .mini-stat .ms-num { font-weight: 700; }
+  [data-font="classic"] label { text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 12px; }
+  [data-font="classic"] h2.section { letter-spacing: 1px; font-weight: 600; font-size: 12px; }
+  [data-font="classic"] .banner-left .today { letter-spacing: .5px; }
 
   /* ===== Stats ===== */
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
@@ -801,6 +815,12 @@
           <div class="theme-opt" data-theme="dark">🌙 Dark</div>
           <div class="theme-opt" data-theme="light">☀️ Light</div>
         </div>
+        <div class="field"><label>Typography</label>
+          <div class="theme-opts">
+            <div class="theme-opt" data-font="modern">Modern (mono)</div>
+            <div class="theme-opt" data-font="classic">Classic (sans)</div>
+          </div>
+        </div>
         <div class="field" style="margin-bottom:0;"><label>Accent color</label><div class="accent-opts" id="accentOpts"></div></div>
 
         <div class="row-actions"><button class="btn" id="saveProfile">Save Settings</button></div>
@@ -1198,7 +1218,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(d)); return true; }
     catch (e) { alert("Could not save — storage is full or unavailable. Your change was not persisted."); return false; }
   };
-  const defaultProfile = () => ({ name: "", goal: 4, unit: "lbs", theme: "dark", accent: ACCENTS[0], bw: "", cal: "" });
+  const defaultProfile = () => ({ name: "", goal: 4, unit: "lbs", theme: "dark", accent: ACCENTS[0], bw: "", cal: "", font: "modern" });
   const loadProfile = () => {
     try {
       const v = JSON.parse(localStorage.getItem(PKEY));
@@ -1537,6 +1557,7 @@
   /* ---------- theme ---------- */
   function applyProfile() {
     document.documentElement.setAttribute("data-theme", profile.theme);
+    document.documentElement.setAttribute("data-font", profile.font || "modern");
     document.documentElement.style.setProperty("--accent", profile.accent);
     document.querySelectorAll(".unit").forEach((el) => (el.textContent = profile.unit));
   }
@@ -3441,7 +3462,8 @@
     $("pUnit").value = profile.unit;
     $("pBw").value = profile.bw || "";
     $("pCal").value = profile.cal || "";
-    document.querySelectorAll(".theme-opt").forEach((t) => t.classList.toggle("active", t.dataset.theme === profile.theme));
+    document.querySelectorAll(".theme-opt[data-theme]").forEach((t) => t.classList.toggle("active", t.dataset.theme === profile.theme));
+    document.querySelectorAll(".theme-opt[data-font]").forEach((t) => t.classList.toggle("active", t.dataset.font === (profile.font || "modern")));
     renderAccents();
     try {
       const snap = JSON.parse(localStorage.getItem(SNAPKEY) || "null");
@@ -3468,11 +3490,18 @@
   }
 
   $("profileBtn").addEventListener("click", openSettings);
-  document.querySelectorAll(".theme-opt").forEach((t) =>
+  document.querySelectorAll(".theme-opt[data-theme]").forEach((t) =>
     t.addEventListener("click", () => {
       profile.theme = t.dataset.theme;
-      document.querySelectorAll(".theme-opt").forEach((x) => x.classList.toggle("active", x === t));
+      document.querySelectorAll(".theme-opt[data-theme]").forEach((x) => x.classList.toggle("active", x === t));
       document.documentElement.setAttribute("data-theme", profile.theme);
+    })
+  );
+  document.querySelectorAll(".theme-opt[data-font]").forEach((t) =>
+    t.addEventListener("click", () => {
+      profile.font = t.dataset.font;
+      document.querySelectorAll(".theme-opt[data-font]").forEach((x) => x.classList.toggle("active", x === t));
+      document.documentElement.setAttribute("data-font", profile.font); // live preview
     })
   );
   $("saveProfile").addEventListener("click", () => {
