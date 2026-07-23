@@ -172,7 +172,9 @@
   .stat .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
   /* ===== Dashboard grid ===== */
-  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  /* flex (not grid) so a lone last card grows to fill the row instead of leaving blank space */
+  .dash-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+  .dash-grid > .chart-card { flex: 1 1 320px; min-width: 0; }
   .chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
   .chart-card svg { width: 100%; height: auto; display: block; }
 
@@ -304,12 +306,20 @@
   .mini-stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 6px 12px; text-align: center; flex: 1; min-width: 62px; }
   .mini-stat .ms-num { font-family: var(--font-mono); font-size: 16px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.15; }
   .mini-stat .ms-lbl { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--faint); margin-top: 2px; }
-  .ex-table { margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
-  .ex-item { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .ex-item-name { font-size: 13.5px; font-weight: 600; }
-  .ex-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .setchip { font-family: var(--font-mono); font-size: 11.5px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; color: var(--muted); }
-  .setchip b { color: var(--text); font-weight: 500; }
+  /* exercise breakdown — full-width rows: name left, set chips fill to the right */
+  .ex-table { margin-top: 12px; display: flex; flex-direction: column; }
+  .ex-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 9px 0; border-top: 1px solid var(--border); }
+  .ex-item:first-child { border-top: none; padding-top: 4px; }
+  .ex-item-name { font-size: 14px; font-weight: 600; flex-shrink: 0; }
+  .ex-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex: 1; }
+  .setchip { font-family: var(--font-mono); font-size: 12px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px; padding: 3px 10px; color: var(--muted); }
+  .setchip b { color: var(--text); font-weight: 600; }
+
+  /* logged-workouts history: scrollable widget (~3 visible) + pager */
+  .log-scroll { max-height: 600px; overflow-y: auto; padding-right: 4px; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .pager-info { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--faint); }
+  .btn[disabled] { opacity: .4; cursor: default; filter: none; }
 
   /* ===== Blood pressure ===== */
   .cat-tag { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 3px 10px; }
@@ -323,16 +333,28 @@
   .disclaimer { font-size: 11px; color: var(--muted); margin-top: 12px; font-style: italic; line-height: 1.45; }
 
   /* ===== Streaks ===== */
-  .streak-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 22px; }
-  .streak-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden; }
-  .streak-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--sc, var(--accent)); }
-  .streak-card .s-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .streak-card .s-days { font-family: var(--font-mono); font-size: 40px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; margin: 6px 0 2px; color: var(--sc, var(--text)); }
-  [data-theme="light"] .streak-card .s-days { color: var(--text); }
-  .streak-card .s-sub { font-size: 12px; color: var(--muted); }
-  .streak-card .s-meta { display: flex; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .streak-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 22px; }
+  .streak-card { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--sc, var(--accent)); border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden; }
+  .streak-card .s-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .streak-card .s-name { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .streak-card .s-headline { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--faint); font-family: var(--font-mono); margin: 6px 0 8px; }
+  /* colorful gradient time bars */
+  .s-bars { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+  .s-bar { display: flex; align-items: baseline; gap: 8px; color: #fff; border-radius: 9px; padding: 8px 14px; box-shadow: 0 3px 12px rgba(0,0,0,.28); min-width: 130px; }
+  .s-bar b { font-family: var(--font-mono); font-size: 23px; font-weight: 800; letter-spacing: -.02em; }
+  .s-bar span { font-size: 14px; font-weight: 500; opacity: .95; }
+  .s-quote-refresh { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 13px; flex-shrink: 0; }
+  .s-quote-refresh:hover { color: var(--accent); border-color: var(--accent); }
+  .s-quote { font-size: 12.5px; font-style: italic; color: var(--muted); border-left: 2px solid var(--sc, var(--accent)); padding-left: 10px; margin: 0 0 12px; line-height: 1.5; }
+  .s-mile-row { display: flex; gap: 5px; flex-wrap: wrap; margin: 0 0 12px; }
+  .s-mile { font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--faint); }
+  .s-mile.hit { background: var(--accent-dim); border-color: color-mix(in srgb, var(--accent) 50%, transparent); color: var(--accent); }
+  .s-mile.next { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .streak-card .s-meta { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
   .streak-card .s-meta b { color: var(--text); }
-  .streak-card .s-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .streak-card .s-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+  .s-slip { background: transparent; border: 1px solid var(--border-strong); color: var(--muted); border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .s-slip:hover { border-color: var(--danger); color: var(--danger); background: rgba(248,113,113,.1); }
   .milestone { display: inline-block; font-size: 11px; font-weight: 700; background: var(--panel-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 9px; margin-top: 10px; }
   .guide h3 { font-size: 15px; margin: 18px 0 6px; }
   .guide p, .guide li { font-size: 13.5px; color: var(--text); line-height: 1.6; }
@@ -451,7 +473,8 @@
     .log-layout { grid-template-columns: 1fr; }
     .quote-box { text-align: left; max-width: none; }
     .wrap { padding: 14px 12px calc(56px + env(safe-area-inset-bottom, 0px)); }
-    .dash-grid { grid-template-columns: 1fr; gap: 10px; }
+    .dash-grid { gap: 10px; }
+    .dash-grid > .chart-card { flex-basis: 100%; }
     .card, .chart-card { padding: 13px; margin-bottom: 10px; }
 
     /* topbar: brand row + horizontally scrollable nav (kept below the notch) */
@@ -583,7 +606,8 @@
         </select>
         <button class="btn secondary" id="exportBtn" title="Download all data as JSON">Export</button>
       </div>
-      <div id="list"></div>
+      <div id="list" class="log-scroll"></div>
+      <div class="pager" id="logPager" style="display:none;"></div>
     </div>
   </section>
 
@@ -1293,7 +1317,7 @@
   /* ---------- streaks state ---------- */
   const SKEY = "gymTracker.streaks.v1";
   const ST_COLORS = ["#36c98d", "#4f8cff", "#ff9f43", "#b57bff", "#22c1c3", "#ff5d6c"];
-  const MILESTONES = [1, 3, 7, 14, 30, 60, 90, 180, 365];
+  const MILESTONES = [1, 3, 7, 14, 21, 30, 45, 60, 90, 120, 180, 270, 365, 500, 730];
   const normalizeStreak = (s) => ({
     id: safeId(s && s.id != null ? s.id : Date.now()),
     name: String(s && s.name != null ? s.name : ""),
@@ -1790,8 +1814,8 @@
   $("workoutCloseBtn").addEventListener("click", () => { resetForm(); closeWorkoutModal(); });
   $("cancelBtn").addEventListener("click", () => { resetForm(); closeWorkoutModal(); });
   $("workoutOverlay").addEventListener("click", (e) => { if (e.target === $("workoutOverlay")) { resetForm(); closeWorkoutModal(); } });
-  $("search").addEventListener("input", renderList);
-  $("filterType").addEventListener("change", renderList);
+  $("search").addEventListener("input", () => { logPage = 0; renderList(); });
+  $("filterType").addEventListener("change", () => { logPage = 0; renderList(); });
   $("exProgSel").addEventListener("change", renderExerciseProgress);
 
   $("exportBtn").addEventListener("click", () => {
@@ -2291,6 +2315,8 @@
       </div>`;
   }
 
+  let logPage = 0;
+  const LOG_PER_PAGE = 10;
   function renderList() {
     const q = $("search").value.toLowerCase();
     const ft = $("filterType").value;
@@ -2298,8 +2324,23 @@
       .filter((w) => !ft || w.type === ft)
       .filter((w) => !q || w.name.toLowerCase().includes(q) || (w.notes || "").toLowerCase().includes(q) || (Array.isArray(w.exercises) && w.exercises.some((ex) => (ex.name || "").toLowerCase().includes(q))))
       .sort(sortByDate);
-    $("list").innerHTML = list.length ? list.map(entryHtml).join("") : `<div class="empty">No workouts match.</div>`;
+    const pages = Math.max(1, Math.ceil(list.length / LOG_PER_PAGE));
+    if (logPage >= pages) logPage = pages - 1;
+    const pageItems = list.slice(logPage * LOG_PER_PAGE, logPage * LOG_PER_PAGE + LOG_PER_PAGE);
+    $("list").innerHTML = list.length ? pageItems.map(entryHtml).join("") : `<div class="empty">No workouts match.</div>`;
+    // pager: shows only when there's more than one page (10 per page)
+    if (list.length > LOG_PER_PAGE) {
+      $("logPager").style.display = "flex";
+      $("logPager").innerHTML = `
+        <button class="btn secondary mini" ${logPage === 0 ? "disabled" : ""} onclick="logGoPage(${logPage - 1})">‹ Newer</button>
+        <span class="pager-info">Page ${logPage + 1} of ${pages} · ${list.length} workouts</span>
+        <button class="btn secondary mini" ${logPage >= pages - 1 ? "disabled" : ""} onclick="logGoPage(${logPage + 1})">Older ›</button>`;
+    } else {
+      $("logPager").style.display = "none";
+      $("logPager").innerHTML = "";
+    }
   }
+  function logGoPage(p) { logPage = Math.max(0, p); renderList(); const el = $("list"); if (el) el.scrollTop = 0; }
 
   /* ---------- blood pressure ---------- */
   function renderBPFeedback() {
@@ -2508,6 +2549,54 @@
   function nextMilestone(days) { return MILESTONES.find((m) => m > days) || null; }
   function lastMilestone(days) { const hit = MILESTONES.filter((m) => m <= days); return hit.length ? hit[hit.length - 1] : null; }
 
+  // elapsed time split into month/day/hour/minute/second units for the colorful bars
+  const S_UNIT_GRAD = { month: ["#12b981", "#0d9f6e"], day: ["#22c1c3", "#12a3b8"], hour: ["#4f8cff", "#2f6bff"], minute: ["#6aa0ff", "#4f8cff"], second: ["#a78bfa", "#8b6cf0"] };
+  function streakUnits(s) {
+    const sd = streakStartDate(s); if (!sd) return [];
+    let ms = Math.max(0, Date.now() - sd.getTime());
+    const totalDays = Math.floor(ms / 86400000);
+    const months = Math.floor(totalDays / 30), days = totalDays % 30;
+    let rem = ms - totalDays * 86400000;
+    const h = Math.floor(rem / 3600000); rem -= h * 3600000;
+    const m = Math.floor(rem / 60000); rem -= m * 60000;
+    const sec = Math.floor(rem / 1000);
+    const u = [];
+    if (months > 0) u.push({ v: months, type: "month", label: months === 1 ? "month" : "months" });
+    u.push({ v: days, type: "day", label: days === 1 ? "day" : "days" });
+    u.push({ v: h, type: "hour", label: h === 1 ? "hour" : "hours" });
+    u.push({ v: m, type: "minute", label: m === 1 ? "minute" : "minutes" });
+    u.push({ v: sec, type: "second", label: sec === 1 ? "second" : "seconds" });
+    return u;
+  }
+  function streakBarsHtml(s) {
+    const u = streakUnits(s);
+    if (!u.length) return `<div class="s-bar" style="background:var(--panel-2);color:var(--muted);box-shadow:none;"><b>0</b><span>days</span></div>`;
+    const widths = [100, 84, 68, 54, 42];
+    const off = 5 - u.length; // right-align widths so seconds is always the narrowest
+    return u.map((x, i) => {
+      const g = S_UNIT_GRAD[x.type];
+      return `<div class="s-bar" style="width:${widths[i + off]}%;background:linear-gradient(90deg,${g[0]},${g[1]})"><b>${x.v}</b><span>${x.label}</span></div>`;
+    }).join("");
+  }
+
+  const streakQuote = {}; // id -> quote index (session)
+  const streakQuoteText = (id) => {
+    if (streakQuote[id] == null) streakQuote[id] = (dayOfYear() + id.length) % QUOTES.length;
+    return QUOTES[streakQuote[id] % QUOTES.length][0];
+  };
+  function streakQuoteRefresh(id) {
+    streakQuote[id] = ((streakQuote[id] == null ? 0 : streakQuote[id]) + 1) % QUOTES.length;
+    const el = document.querySelector(`.s-quote[data-qid="${id}"]`);
+    if (el) el.textContent = `“${streakQuoteText(id)}”`;
+  }
+  function milestoneRowHtml(days) {
+    const nm = nextMilestone(days);
+    return MILESTONES.map((mDay) => {
+      const cls = days >= mDay ? "hit" : (mDay === nm ? "next" : "");
+      return `<span class="s-mile ${cls}">${mDay}${days >= mDay ? " ✓" : "d"}</span>`;
+    }).join("");
+  }
+
   function renderStreaks() {
     if (!streaks.length) {
       $("streakGrid").innerHTML = `<div class="empty" style="grid-column:1/-1">No streaks yet. Add one below — day 1 starts now. 💪</div>`;
@@ -2516,35 +2605,36 @@
     $("streakGrid").innerHTML = streaks.map((s, i) => {
       const days = streakDays(s);
       const best = Math.max(s.best, days);
-      const nm = nextMilestone(days);
-      const lm = lastMilestone(days);
       const color = ST_COLORS[i % ST_COLORS.length];
       const sd = streakStartDate(s);
       const sinceStr = sd ? `${sd.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} · ${sd.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}` : "—";
       return `
         <div class="streak-card" style="--sc:${color}">
-          <div class="s-name">${esc(s.name)}</div>
-          <div class="s-days">${days}</div>
-          <div class="s-sub">day${days === 1 ? "" : "s"} clean${nm ? ` — ${nm - days} to the ${nm}-day mark` : " — beyond every milestone 🏆"}</div>
-          <div class="s-live" data-sid="${s.id}">${streakElapsedHtml(s)}</div>
+          <div class="s-head">
+            <div class="s-name">${esc(s.name)}</div>
+            <button class="s-quote-refresh" onclick="streakQuoteRefresh('${s.id}')" title="New quote">↻</button>
+          </div>
+          <div class="s-headline">Clean for</div>
+          <div class="s-bars" data-sid="${s.id}">${streakBarsHtml(s)}</div>
+          <div class="s-quote" data-qid="${s.id}">“${esc(streakQuoteText(s.id))}”</div>
+          <div class="s-mile-row">${milestoneRowHtml(days)}</div>
           <div class="s-meta">
             <span>Best: <b>${best}d</b></span>
             <span>Resets: <b>${s.resets.length}</b></span>
             <span>Since: <b>${esc(sinceStr)}</b></span>
           </div>
-          ${lm ? `<span class="milestone">🎖 ${lm}-day milestone reached</span>` : ""}
           <div class="s-actions">
-            <button class="btn secondary" onclick="stReset('${s.id}')">I slipped — reset</button>
-            <button class="btn ghost" onclick="stDel('${s.id}')">Delete</button>
+            <button class="s-slip" onclick="stReset('${s.id}')">💔 I slipped</button>
+            <button class="iconbtn danger" onclick="stDel('${s.id}')" title="Delete streak">🗑</button>
           </div>
         </div>`;
     }).join("");
   }
 
-  // live ticker — updates the elapsed line every second; re-renders the cards when a day rolls over
+  // live ticker — updates the colorful time bars every second; re-renders cards when a day rolls over (milestones)
   let _stLastDays = null;
   setInterval(() => {
-    const nodes = document.querySelectorAll(".s-live[data-sid]");
+    const nodes = document.querySelectorAll(".s-bars[data-sid]");
     if (!nodes.length) return;
     const dayFingerprint = streaks.map((s) => streakDays(s)).join(",");
     if (_stLastDays !== null && dayFingerprint !== _stLastDays) {
@@ -2555,7 +2645,7 @@
     _stLastDays = dayFingerprint;
     nodes.forEach((el) => {
       const s = streaks.find((x) => x.id === el.dataset.sid);
-      if (s) el.innerHTML = streakElapsedHtml(s);
+      if (s) el.innerHTML = streakBarsHtml(s);
     });
   }, 1000);
 
@@ -3270,24 +3360,24 @@
     return `
       <div class="chart-card">
         <h2 class="section">Today's Habits</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-          <div class="mini-stat" style="flex:1;min-width:120px;">
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <div class="mini-stat" style="flex:1;">
             <div class="ms-num">💧 ${h.water}</div><div class="ms-lbl">cups water</div>
             <div style="display:flex;gap:6px;justify-content:center;margin-top:6px;">
               <button class="iconbtn" onclick="waterAdd(-1)">−</button>
               <button class="iconbtn" onclick="waterAdd(1)">+</button>
             </div>
           </div>
-          <div class="mini-stat" style="flex:1;min-width:120px;">
+          <div class="mini-stat" style="flex:1;">
             <div class="ms-num">😴 ${h.sleep !== "" ? esc(String(h.sleep)) : "–"}</div><div class="ms-lbl">hours sleep</div>
             <input type="number" step="any" min="0" max="24" value="${esc(String(h.sleep))}" placeholder="hrs"
               onchange="sleepSet(this.value)" style="margin-top:6px;text-align:center;padding:5px 8px;font-size:13px;" />
           </div>
         </div>
-        <h2 class="section" style="margin-bottom:6px;">Water — last 7 days</h2>
-        ${svgBars(habits7d("water"), PALETTE[5])}
-        <h2 class="section" style="margin:10px 0 6px;">Sleep — last 7 days</h2>
-        ${svgBars(habits7d("sleep"), PALETTE[3])}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><h2 class="section" style="margin-bottom:6px;">💧 Water · 7d</h2>${svgBars(habits7d("water"), PALETTE[5])}</div>
+          <div><h2 class="section" style="margin-bottom:6px;">😴 Sleep · 7d</h2>${svgBars(habits7d("sleep"), PALETTE[3])}</div>
+        </div>
       </div>`;
   }
 
@@ -3390,9 +3480,11 @@
     return out;
   }
   const LBKEY = "gymTracker.lastBackup.v1"; // device-local: NOT part of DATA_KEYS, so it never travels inside a backup
+  const NAGKEY = "gymTracker.backupNag.v1"; // next date the reminder is allowed to show again
   let backupSnoozed = false; // dismissed for this session
   const getLastBackup = () => { try { return localStorage.getItem(LBKEY) || ""; } catch { return ""; } };
   const setLastBackup = () => { try { localStorage.setItem(LBKEY, dayKey(new Date())); } catch (e) {} };
+  const snoozeBackupNag = () => { try { const d = new Date(); d.setDate(d.getDate() + 2); localStorage.setItem(NAGKEY, dayKey(d)); } catch (e) {} };
   // only nag once you've actually logged something worth losing (seeded recipes don't count)
   const hasAnyData = () => workouts.length || bp.length || streaks.length || nut.meals.length || weighins.length || Object.keys(daily).length;
 
@@ -3409,21 +3501,22 @@
   function renderBackupBanner() {
     const el = $("backupBanner");
     if (!el) return;
-    if (backupSnoozed || !hasAnyData()) { el.style.display = "none"; return; }
+    const hide = () => { el.style.display = "none"; };
+    if (backupSnoozed || !hasAnyData()) return hide();
+    const today = dayKey(new Date());
     const last = getLastBackup();
-    let show = false, msg = "";
-    if (!last) {
-      show = true;
-      msg = "🛟 Your data lives only on this device. Save a backup file so you can never lose it.";
-    } else {
-      const days = Math.floor((asDate(dayKey(new Date())) - asDate(last)) / 86400000);
-      if (days >= 7) { show = true; msg = `🛟 It's been ${days} days since your last backup — export one to stay safe.`; }
-    }
-    el.style.display = show ? "flex" : "none";
-    if (show) $("backupMsg").textContent = msg;
+    const daysSince = last ? Math.floor((asDate(today) - asDate(last)) / 86400000) : 999;
+    if (daysSince < 2) return hide(); // backed up within the last 2 days — nothing to nag about
+    let nextNag = ""; try { nextNag = localStorage.getItem(NAGKEY) || ""; } catch (e) {}
+    if (nextNag && today < nextNag) return hide(); // already reminded within the last 2 days
+    $("backupMsg").textContent = last
+      ? `🛟 It's been ${daysSince} days since your last backup — export one to stay safe.`
+      : "🛟 Your data lives only on this device. Save a backup file so you can never lose it.";
+    el.style.display = "flex";
+    snoozeBackupNag(); // shown once now → don't show again for 2 days (no per-refresh spam)
   }
   $("backupNowBtn").addEventListener("click", exportAll);
-  $("backupLaterBtn").addEventListener("click", () => { backupSnoozed = true; renderBackupBanner(); });
+  $("backupLaterBtn").addEventListener("click", () => { backupSnoozed = true; snoozeBackupNag(); renderBackupBanner(); });
   function applyBackup(obj) {
     if (!obj || typeof obj !== "object" || !obj.data || typeof obj.data !== "object") return false;
     const entries = Object.entries(obj.data).filter(([k, v]) => DATA_KEYS.includes(k) && typeof v === "string");
