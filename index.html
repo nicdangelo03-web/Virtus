@@ -375,12 +375,25 @@
   .food-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-strong); font-size: 12.5px; }
   .food-total b { font-family: var(--font-mono); font-weight: 500; }
   .fb-empty { font-size: 12.5px; color: var(--faint); padding: 8px 2px; }
-  .meal-day-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 14px 0 6px; }
+  /* macro color system — vivid on dark, darker-but-readable on light */
+  :root { --m-cal: var(--text); --m-prot: #34d399; --m-carb: #ffb020; --m-fat: #8fb0ff; --m-sets: #4f8cff; --m-vol: #34d399; --m-min: #22c1c3; --m-rpe: #ff9f43; }
+  [data-theme="light"] { --m-cal: var(--text); --m-prot: #0d9f6e; --m-carb: #b3730a; --m-fat: #3b5bdb; --m-sets: #2f6bff; --m-vol: #0d9f6e; --m-min: #0d8a8f; --m-rpe: #b3730a; }
+  .macro-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .macro-pill { font-family: var(--font-mono); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel-2); white-space: nowrap; }
+  .macro-pill b { font-weight: 600; }
+  .macro-pill.sm { font-size: 11px; padding: 2px 7px; }
+  .macro-pill.good { background: rgba(52,211,153,.15); border-color: rgba(52,211,153,.5); color: var(--m-prot); }
+  .macro-pill.bad { background: rgba(248,113,113,.16); border-color: rgba(248,113,113,.5); color: var(--danger); }
+
+  .meal-day-head { margin: 16px 0 8px; }
   .meal-day-head:first-child { margin-top: 0; }
+  .mdh-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .mdh-date { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--faint); }
   .meal-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
   .meal-row:last-child { border-bottom: none; }
   .meal-row .m-name { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; }
   .meal-row .m-macros { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .meal-row .macro-pills { flex-shrink: 0; }
   .meal-row .btn { padding: 4px 8px; font-size: 12px; }
 
   /* plan editor */
@@ -2239,16 +2252,16 @@
 
     const stats = [];
     if (ex) {
-      const sc = setCount(w); if (sc) stats.push([String(sc), sc === 1 ? "set" : "sets"]);
-      const vol = volumeOf(w); if (vol) stats.push([fmt(vol), "vol " + profile.unit]);
+      const sc = setCount(w); if (sc) stats.push([String(sc), sc === 1 ? "set" : "sets", "var(--m-sets)"]);
+      const vol = volumeOf(w); if (vol) stats.push([fmt(vol), "vol " + profile.unit, "var(--m-vol)"]);
     } else {
-      if (w.sets) stats.push([String(w.sets), "sets"]);
-      if (w.reps) stats.push([String(w.reps), "reps"]);
-      if (w.weight) stats.push([String(w.weight), profile.unit]);
+      if (w.sets) stats.push([String(w.sets), "sets", "var(--m-sets)"]);
+      if (w.reps) stats.push([String(w.reps), "reps", "var(--m-fat)"]);
+      if (w.weight) stats.push([String(w.weight), profile.unit, "var(--m-vol)"]);
     }
-    if (w.duration) stats.push([String(w.duration), "min"]);
-    if (w.intensity) stats.push([String(w.intensity), "RPE"]);
-    const statTiles = stats.map((s) => `<div class="mini-stat"><div class="ms-num">${esc(s[0])}</div><div class="ms-lbl">${esc(s[1])}</div></div>`).join("");
+    if (w.duration) stats.push([String(w.duration), "min", "var(--m-min)"]);
+    if (w.intensity) stats.push([String(w.intensity), "RPE", "var(--m-rpe)"]);
+    const statTiles = stats.map((s) => `<div class="mini-stat"><div class="ms-num" style="color:${s[2]}">${esc(s[0])}</div><div class="ms-lbl">${esc(s[1])}</div></div>`).join("");
 
     let exHtml = "";
     if (ex) {
@@ -2731,14 +2744,31 @@
       { label: "Fat", value: Math.round(t.fat), color: PALETTE[2] },
     ].filter((s) => s.value > 0);
   }
+  // colored macro pills for a day's totals, with red/green goal highlighting on calories & protein
+  function macroPillsHtml(t) {
+    const r = (n) => Math.round(n).toLocaleString();
+    const calTarget = Number(profile.cal) || null;
+    const protTarget = proteinTarget();
+    const calCls = calTarget ? (t.cal <= calTarget ? "good" : "bad") : "";     // under budget = green, over = red
+    const protCls = protTarget ? (t.prot >= protTarget ? "good" : "bad") : ""; // hit target = green, short = red
+    return `<div class="macro-pills">
+      <span class="macro-pill ${calCls}" ${calCls ? "" : `style="color:var(--m-cal)"`}><b>${r(t.cal)}</b> cal${calTarget ? ` / ${calTarget.toLocaleString()}` : ""}</span>
+      <span class="macro-pill ${protCls}" ${protCls ? "" : `style="color:var(--m-prot)"`}><b>${r(t.prot)}</b>g P${protTarget ? ` / ${protTarget}` : ""}</span>
+      <span class="macro-pill" style="color:var(--m-carb)"><b>${r(t.carb)}</b>g C</span>
+      <span class="macro-pill" style="color:var(--m-fat)"><b>${r(t.fat)}</b>g F</span>
+    </div>`;
+  }
+
   function mealRowHtml(m, showDate) {
-    const macros = [m.cal && `${Math.round(Number(m.cal))} cal`, m.prot && `${Math.round(Number(m.prot))}g P`].filter(Boolean).join(" · ");
-    const dateStr = showDate && m.date ? `<span class="m-macros" style="margin-right:8px;">${esc(asDate(m.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}</span>` : "";
+    const pills = [];
+    if (String(m.cal).trim() !== "" && Number(m.cal)) pills.push(`<span class="macro-pill sm" style="color:var(--m-cal)"><b>${Math.round(Number(m.cal))}</b> cal</span>`);
+    if (String(m.prot).trim() !== "" && Number(m.prot)) pills.push(`<span class="macro-pill sm" style="color:var(--m-prot)"><b>${Math.round(Number(m.prot))}</b>g P</span>`);
+    const dateStr = showDate && m.date ? `<span class="m-macros" style="margin-right:2px;">${esc(asDate(m.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}</span>` : "";
     return `
       <div class="meal-row">
         <span class="m-name">${esc(m.name)}</span>
         ${dateStr}
-        <span class="m-macros">${macros}</span>
+        <span class="macro-pills">${pills.join("")}</span>
         <button class="btn secondary mini" onclick="mealEdit('${m.id}')">Edit</button>
       </div>`;
   }
@@ -2829,8 +2859,11 @@
         const t = nutTotalsOn(m.date);
         const target = proteinTarget();
         const pct = target ? Math.min(100, Math.round((t.prot / target) * 100)) : 0;
-        const macroStr = `${Math.round(t.cal).toLocaleString()} cal · ${Math.round(t.prot)}g P · ${Math.round(t.carb)}g C · ${Math.round(t.fat)}g F`;
-        html += `<div class="meal-day-head day-head-bar"><span>${esc(d)}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span>${macroStr}${target ? ` · ${pct}%` : ""}</span></div>`;
+        const barColor = target && t.prot >= target ? "var(--m-prot)" : "";
+        html += `<div class="meal-day-head">
+          <div class="mdh-top"><span class="mdh-date">${esc(d)}${target ? ` · ${pct}% protein` : ""}</span>${macroPillsHtml(t)}</div>
+          ${target ? `<div class="bar-track" style="margin-top:7px;"><div class="bar-fill" style="width:${pct}%;${barColor ? `background:${barColor};` : ""}"></div></div>` : ""}
+        </div>`;
       }
       html += mealRowHtml(m, false);
     });
