@@ -354,6 +354,9 @@
   .who-badge.family { color: var(--c3); }
   .who-badge.both { color: var(--accent-2); }
   .pantry-tag { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 8px; background: rgba(255,159,67,.15); color: #ff9f43; border: 1px solid rgba(255,159,67,.4); white-space: nowrap; }
+  .backup-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(255,159,67,.12); border-bottom: 1px solid rgba(255,159,67,.35); color: var(--text); font-size: 13px; padding: 10px 18px; }
+  .backup-banner .bb-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  @media (max-width: 760px) { .backup-banner { padding: 9px 12px; font-size: 12.5px; } }
   .food-builder { border: 1px solid var(--border-strong); border-radius: 12px; padding: 12px; background: var(--panel-2); }
   .food-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-strong); font-size: 12.5px; }
   .food-total b { font-family: var(--font-mono); font-weight: 500; }
@@ -476,6 +479,14 @@
   </nav>
   <div class="spacer"></div>
   <button class="icon-btn" id="profileBtn" title="Profile &amp; Settings">⚙️</button>
+</div>
+
+<div class="backup-banner" id="backupBanner" style="display:none;">
+  <span id="backupMsg"></span>
+  <span class="bb-actions">
+    <button class="btn mini" id="backupNowBtn">Export backup</button>
+    <button class="btn secondary mini" id="backupLaterBtn">Later</button>
+  </span>
 </div>
 
 <div class="wrap">
@@ -1958,6 +1969,7 @@
     renderPlans();
     renderNutrition();
     renderExerciseProgress();
+    renderBackupBanner();
   }
 
   /* ---------- dashboard ---------- */
@@ -3323,13 +3335,41 @@
     DATA_KEYS.forEach((k) => { const v = localStorage.getItem(k); if (v != null) out.data[k] = v; });
     return out;
   }
+  const LBKEY = "gymTracker.lastBackup.v1"; // device-local: NOT part of DATA_KEYS, so it never travels inside a backup
+  let backupSnoozed = false; // dismissed for this session
+  const getLastBackup = () => { try { return localStorage.getItem(LBKEY) || ""; } catch { return ""; } };
+  const setLastBackup = () => { try { localStorage.setItem(LBKEY, dayKey(new Date())); } catch (e) {} };
+  // only nag once you've actually logged something worth losing (seeded recipes don't count)
+  const hasAnyData = () => workouts.length || bp.length || streaks.length || nut.meals.length || weighins.length || Object.keys(daily).length;
+
   function exportAll() {
     const blob = new Blob([JSON.stringify(collectAll(), null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `gym-tracker-backup-${dayKey(new Date())}.json`; a.click();
     URL.revokeObjectURL(url);
+    setLastBackup();
+    renderBackupBanner();
   }
+
+  function renderBackupBanner() {
+    const el = $("backupBanner");
+    if (!el) return;
+    if (backupSnoozed || !hasAnyData()) { el.style.display = "none"; return; }
+    const last = getLastBackup();
+    let show = false, msg = "";
+    if (!last) {
+      show = true;
+      msg = "🛟 Your data lives only on this device. Save a backup file so you can never lose it.";
+    } else {
+      const days = Math.floor((asDate(dayKey(new Date())) - asDate(last)) / 86400000);
+      if (days >= 7) { show = true; msg = `🛟 It's been ${days} days since your last backup — export one to stay safe.`; }
+    }
+    el.style.display = show ? "flex" : "none";
+    if (show) $("backupMsg").textContent = msg;
+  }
+  $("backupNowBtn").addEventListener("click", exportAll);
+  $("backupLaterBtn").addEventListener("click", () => { backupSnoozed = true; renderBackupBanner(); });
   function applyBackup(obj) {
     if (!obj || typeof obj !== "object" || !obj.data || typeof obj.data !== "object") return false;
     const entries = Object.entries(obj.data).filter(([k, v]) => DATA_KEYS.includes(k) && typeof v === "string");
