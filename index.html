@@ -3476,7 +3476,14 @@
   takeSnapshot(); // daily auto-backup of all data
   // PWA: register the service worker only when served over http(s) — double-clicking the file keeps working as before
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => reg.update()).catch(() => {});
+    // when a freshly-deployed version takes over, reload once so you always see the latest — no reinstall needed
+    let __swReloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (__swReloaded) return;
+      __swReloaded = true;
+      location.reload();
+    });
   }
   render();
 </script>
