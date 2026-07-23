@@ -1,0 +1,40 @@
+==================================================================
+   ✋  DO NOT DELETE ANYTHING IN THIS FOLDER  ✋
+   ( Gym Workout Tracker )
+==================================================================
+
+This folder is ONE complete app. Every file in it is needed for the
+app to work -- even the ones with weird, technical names.
+
+Think of them like the parts inside an appliance: on their own they
+look like junk, but the app needs all of them together. None of them
+are trash.
+
+In Finder you'll also see each item marked with a RED "Do Not Delete"
+tag. That's your signal: red = keep it.
+
+------------------------------------------------------------------
+  THE ONLY RULE YOU NEED:
+     Keep this WHOLE folder, or delete this WHOLE folder.
+     Never delete individual files from inside it.
+------------------------------------------------------------------
+
+What the technical-looking stuff actually is (in plain English)
+(your app may not have all of these -- this is just so nothing
+looks scary):
+
+   index.html ............ the actual app / page you see
+   package.json .......... the app's settings + list of parts it needs
+   package-lock.json ..... the exact versions of those parts
+   node_modules .......... those parts themselves (big folder -- keep it!)
+   src ................... the app's source code
+   dist .................. the finished, ready-to-run version
+   public / assets / www . pictures and files the app uses
+   server.py ............. the little program that runs the app
+   config.json ........... your saved settings
+   vite.config.ts ........ build settings
+   tsconfig*.json ........ setup / configuration files
+   a ".command" file ..... double-click THIS to start the app
+
+To remove this app someday: just drag the WHOLE folder to the Trash.
+Nothing else on your computer depends on it.
