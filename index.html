@@ -426,22 +426,49 @@
   .meal-row .macro-pills { flex-shrink: 0; }
   .meal-row .btn { padding: 4px 8px; font-size: 12px; }
 
-  /* ===== Habits ===== */
-  .habit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  .habit-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 15px; display: flex; align-items: center; gap: 12px; transition: border-color .15s, background .15s; }
-  .habit-card.done { border-color: var(--accent); background: var(--accent-dim); }
-  .habit-check { width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; border: 1px solid var(--border); background: var(--panel-2); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
-  .habit-card.done .habit-check { background: var(--accent); border-color: var(--accent); }
-  .habit-body { flex: 1; min-width: 0; }
-  .habit-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
-  .habit-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .habit-dots { display: inline-flex; gap: 3px; }
-  .habit-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--border); }
-  .habit-dot.on { background: var(--accent); border-color: var(--accent); }
-  .habit-del { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 12px; flex-shrink: 0; }
-  .habit-del:hover { color: var(--danger); border-color: var(--danger); }
-  .habit-sum { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .habit-sum .hs-num { font-family: var(--font-mono); font-weight: 300; font-size: 30px; line-height: 1; }
+  /* ===== Habits — monthly grid ===== */
+  .hab-monthbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .hab-monthbar .mnav { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); cursor: pointer; font-size: 17px; line-height: 1; }
+  .hab-monthbar .mnav:hover { border-color: var(--accent); color: var(--accent); }
+  .hab-month-label { font-size: 17px; font-weight: 600; min-width: 168px; text-align: center; }
+  .hab-card { padding: 12px; }
+  .hab-scroll { overflow-x: auto; overflow-y: hidden; }
+  table.habgrid { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
+  table.habgrid td { text-align: center; vertical-align: middle; }
+  .hg-labelcol { width: 158px; min-width: 158px; text-align: left !important; position: sticky; left: 0; z-index: 2; background: var(--panel); }
+  .hg-daycell, table.habgrid td:not(.hg-labelcol) { width: 30px; min-width: 30px; }
+  /* top bar strip */
+  .hg-barrow td { height: 52px; }
+  .hg-bar-wrap { height: 46px; display: flex; align-items: flex-end; justify-content: center; padding: 0 3px; }
+  .hg-bar { width: 100%; max-width: 15px; border-radius: 3px 3px 0 0; position: relative; min-height: 3px; transition: height .2s; }
+  .hg-barpct { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--faint); font-family: var(--font-mono); }
+  /* week band */
+  .hg-weekband { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; padding: 5px 0; border-radius: 6px; }
+  /* day-number + weekday header */
+  .hg-daynum { font-size: 12px; color: var(--muted); padding: 5px 0 3px; font-family: var(--font-mono); }
+  .hg-daynum.istoday { color: var(--accent); font-weight: 700; }
+  .hg-wd { font-size: 10px; color: var(--faint); text-transform: uppercase; padding-bottom: 6px; font-family: var(--font-mono); }
+  .hg-wd.weekend, .hg-daynum.weekend { color: var(--muted); opacity: .55; }
+  .hg-corner { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--faint); }
+  /* habit rows */
+  .hg-habitname { font-size: 13px; font-weight: 600; text-align: left !important; padding: 0 10px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-top: 1px solid var(--border); height: 34px; position: sticky; left: 0; z-index: 2; background: var(--panel); max-width: 158px; }
+  .hg-habitname:hover { color: var(--accent); }
+  .hg-habitname .hg-hi { margin-right: 7px; }
+  .hg-cell { height: 34px; cursor: pointer; border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+  .hg-cell:hover { background: var(--panel-2); }
+  .hg-cell.weekend { background: rgba(255,255,255,.02); }
+  .hg-cell.istoday { box-shadow: inset 1px 0 0 var(--accent), inset -1px 0 0 var(--accent); }
+  .hg-cell.future { cursor: default; }
+  .hg-cell.future:hover { background: transparent; }
+  .hg-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 1px solid var(--border); background: transparent; vertical-align: middle; }
+  .hg-cell.done .hg-dot { border-color: transparent; }
+  .hg-daynum.weekend, .hg-wd.weekend { background: rgba(255,255,255,.02); }
+  /* weekly progress rings */
+  .hab-weekly { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hab-week { flex: 1; min-width: 130px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .hab-week .hw-count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+  .hab-week .hw-count b { font-size: 16px; }
+  .hab-week .hw-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--faint); font-family: var(--font-mono); margin-top: 2px; }
   .emoji-picks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .emoji-pick { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel-2); font-size: 18px; cursor: pointer; }
   .emoji-pick.active { border-color: var(--accent); background: var(--accent-dim); }
@@ -819,8 +846,22 @@
       <button class="btn" id="openHabitBtn">+ Add Habit</button>
     </div>
 
-    <div class="card" id="habitSummary" style="display:none;"></div>
-    <div class="habit-grid" id="habitGrid"></div>
+    <div class="hab-monthbar">
+      <button class="mnav" id="habPrev" title="Previous month">‹</button>
+      <div class="hab-month-label" id="habMonthLabel">—</div>
+      <button class="mnav" id="habNext" title="Next month">›</button>
+      <button class="btn secondary mini" id="habToday">Today</button>
+      <span class="pill" id="habTodayPill" style="margin-left:auto;"></span>
+    </div>
+
+    <div class="card hab-card" id="habGridCard">
+      <div class="hab-scroll" id="habGridWrap"></div>
+    </div>
+
+    <div class="card" id="habWeeklyCard">
+      <h2 class="section">Weekly Progress</h2>
+      <div class="hab-weekly" id="habWeekly"></div>
+    </div>
   </section>
 
   <!-- ===================== STREAKS ===================== -->
@@ -2727,15 +2768,16 @@
     }).join("");
   }
 
-  /* ---------- habits (daily check-off) ---------- */
+  /* ---------- habits (monthly grid check-off) ---------- */
   const habitDone = (id, key) => !!(habits.log[key] && habits.log[key][id]);
-  function habitToggle(id) {
-    const t = dayKey(new Date());
-    const day = habits.log[t] || (habits.log[t] = {});
+  // toggle an arbitrary date (grid cells + dashboard chips both route through here)
+  function habitToggleDate(id, key) {
+    const day = habits.log[key] || (habits.log[key] = {});
     if (day[id]) delete day[id]; else day[id] = 1;
-    if (!Object.keys(day).length) delete habits.log[t];
+    if (!Object.keys(day).length) delete habits.log[key];
     if (saveHabits()) render();
   }
+  function habitToggle(id) { habitToggleDate(id, dayKey(new Date())); }
   // consecutive days done, ending today (today still counts as "pending", not a break, until the day is over)
   function habitStreak(id) {
     let count = 0;
@@ -2744,47 +2786,122 @@
     while (habitDone(id, dayKey(d))) { count++; d.setDate(d.getDate() - 1); }
     return count;
   }
-  function habitLast7(id) {
-    const out = [];
-    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); out.push(habitDone(id, dayKey(d))); }
-    return out;
+
+  // which month the grid is showing (set at boot); WEEK_COLORS drives the per-week accents
+  let habitMonth = null;
+  const WEEK_COLORS = ["#ff6b6b", "#f6c445", "#4ade80", "#ff9f43", "#b57bff"];
+  const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+  const habKey = (y, m, day) => `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  function habShiftMonth(delta) {
+    if (!habitMonth) return;
+    let m = habitMonth.m + delta, y = habitMonth.y;
+    if (m < 0) { m = 11; y--; } else if (m > 11) { m = 0; y++; }
+    habitMonth = { y, m };
+    renderHabits();
   }
+  // small progress ring (percentage in the middle)
+  function habRing(pct, color) {
+    const r = 30, c = 2 * Math.PI * r, off = c * (1 - Math.max(0, Math.min(100, pct)) / 100);
+    return `<svg viewBox="0 0 80 80" width="76" height="76" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="${r}" fill="none" stroke="var(--panel-2)" stroke-width="9"/>
+      <circle cx="40" cy="40" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 40 40)"/>
+      <text x="40" y="45" text-anchor="middle" style="fill:var(--text);font-size:15px;font-weight:700">${Math.round(pct)}%</text>
+    </svg>`;
+  }
+
   function renderHabits() {
-    const t = dayKey(new Date());
+    if (!habitMonth) { const n = new Date(); habitMonth = { y: n.getFullYear(), m: n.getMonth() }; }
+    const { y, m } = habitMonth;
     const defs = habits.defs;
+    const todayKey = dayKey(new Date());
+
+    // month label + today pill (always shown)
+    $("habMonthLabel").textContent = new Date(y, m, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    const doneToday = defs.filter((h) => habitDone(h.id, todayKey)).length;
+    $("habTodayPill").innerHTML = defs.length
+      ? (doneToday === defs.length ? `🎯 ${doneToday}/${defs.length} done today` : `✅ ${doneToday}/${defs.length} today`)
+      : "";
+
     if (!defs.length) {
-      $("habitSummary").style.display = "none";
-      $("habitGrid").innerHTML = `<div class="empty" style="grid-column:1/-1">No habits yet. Hit <b>+ Add Habit</b> to track pills, vitamins, brushing teeth — anything you want to do daily. ✅</div>`;
+      $("habGridWrap").innerHTML = `<div class="empty">No habits yet. Hit <b>+ Add Habit</b> to track pills, vitamins, brushing teeth — anything you want to do daily. ✅</div>`;
+      $("habWeeklyCard").style.display = "none";
       return;
     }
-    const done = defs.filter((h) => habitDone(h.id, t)).length;
-    const pct = Math.round((done / defs.length) * 100);
-    $("habitSummary").style.display = "";
-    $("habitSummary").innerHTML = `
-      <div class="habit-sum">
-        <div><div class="hs-num" style="color:${done === defs.length ? "var(--accent)" : "var(--text)"}">${done}/${defs.length}</div><div class="ms-lbl" style="font-size:11px;color:var(--muted);">done today</div></div>
-        <div style="flex:1;min-width:140px;">
-          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:6px;">${done === defs.length ? "🎯 All habits done today — nice." : `${defs.length - done} to go`}</div>
-        </div>
-      </div>`;
-    $("habitGrid").innerHTML = defs.map((h) => {
-      const isDone = habitDone(h.id, t);
-      const streak = habitStreak(h.id);
-      const dots = habitLast7(h.id).map((on) => `<span class="habit-dot ${on ? "on" : ""}"></span>`).join("");
-      return `
-        <div class="habit-card ${isDone ? "done" : ""}">
-          <button class="habit-check" title="${isDone ? "Done today — tap to undo" : "Mark done for today"}" onclick="habitToggle('${h.id}')">${isDone ? "✓" : ""}</button>
-          <div class="habit-body">
-            <div class="habit-name">${esc(h.icon)} ${esc(h.name)}</div>
-            <div class="habit-meta">
-              <span>${streak ? `🔥 ${streak}-day streak` : "Not started yet"}</span>
-              <span class="habit-dots" title="Last 7 days">${dots}</span>
-            </div>
-          </div>
-          <button class="habit-del" title="Edit / delete" onclick="habitEdit('${h.id}')">✎</button>
-        </div>`;
+    $("habWeeklyCard").style.display = "";
+
+    const nDays = daysInMonth(y, m);
+    const days = Array.from({ length: nDays }, (_, i) => i + 1);
+    const weekOf = (day) => Math.floor((day - 1) / 7);           // 0-based week chunk (7-day blocks)
+    const colorOf = (day) => WEEK_COLORS[weekOf(day) % WEEK_COLORS.length];
+    const WD = ["S", "M", "T", "W", "T", "F", "S"];
+    const dayMeta = days.map((day) => {
+      const dt = new Date(y, m, day);
+      const dow = dt.getDay();
+      return { day, dow, wd: WD[dow], weekend: dow === 0 || dow === 6, key: habKey(y, m, day), future: habKey(y, m, day) > todayKey, color: colorOf(day) };
+    });
+    const doneCountOn = (key) => defs.reduce((s, h) => s + (habitDone(h.id, key) ? 1 : 0), 0);
+
+    // ----- top bar strip: daily completion % -----
+    const barCells = dayMeta.map((d) => {
+      const pct = Math.round((doneCountOn(d.key) / defs.length) * 100);
+      return `<td class="hg-daycell"><div class="hg-bar-wrap"><div class="hg-bar" style="height:${Math.max(3, pct)}%;background:${d.color};opacity:${d.future ? .25 : 1}"><span class="hg-barpct">${pct}%</span></div></div></td>`;
     }).join("");
+
+    // ----- week band row (colspan per 7-day chunk) -----
+    let bandCells = "", w = 0;
+    while (w * 7 < nDays) {
+      const span = Math.min(7, nDays - w * 7);
+      const col = WEEK_COLORS[w % WEEK_COLORS.length];
+      bandCells += `<td class="hg-weekband" colspan="${span}" style="color:${col};background:${col}1f;">Week ${w + 1}</td>`;
+      w++;
+    }
+
+    // ----- day-number + weekday rows -----
+    const dayNumCells = dayMeta.map((d) => `<td class="hg-daynum ${d.weekend ? "weekend" : ""} ${d.key === todayKey ? "istoday" : ""}">${d.day}</td>`).join("");
+    const wdCells = dayMeta.map((d) => `<td class="hg-wd ${d.weekend ? "weekend" : ""}">${d.wd}</td>`).join("");
+
+    // ----- one row per habit -----
+    const habitRows = defs.map((h) => {
+      const cells = dayMeta.map((d) => {
+        const on = habitDone(h.id, d.key);
+        return `<td class="hg-cell ${on ? "done" : ""} ${d.weekend ? "weekend" : ""} ${d.future ? "future" : ""} ${d.key === todayKey ? "istoday" : ""}"
+          onclick="habitToggleDate('${h.id}','${d.key}')" title="${esc(h.name)} · ${d.key}">
+          <span class="hg-dot" style="${on ? `background:${d.color};` : ""}"></span></td>`;
+      }).join("");
+      return `<tr>
+        <td class="hg-habitname" onclick="habitEdit('${h.id}')" title="Edit habit"><span class="hg-hi">${esc(h.icon)}</span><span class="hg-hn">${esc(h.name)}</span></td>
+        ${cells}
+      </tr>`;
+    }).join("");
+
+    $("habGridWrap").innerHTML = `
+      <table class="habgrid">
+        <tr class="hg-barrow"><td class="hg-labelcol"></td>${barCells}</tr>
+        <tr><td class="hg-labelcol"></td>${bandCells}</tr>
+        <tr><td class="hg-labelcol hg-corner">Days</td>${dayNumCells}</tr>
+        <tr><td class="hg-labelcol"></td>${wdCells}</tr>
+        ${habitRows}
+      </table>`;
+
+    // ----- weekly progress rings -----
+    let weekly = "", wk = 0;
+    while (wk * 7 < nDays) {
+      const start = wk * 7 + 1, end = Math.min(nDays, wk * 7 + 7);
+      const len = end - start + 1;
+      let done = 0;
+      for (let day = start; day <= end; day++) done += doneCountOn(habKey(y, m, day));
+      const total = defs.length * len;
+      const pct = total ? (done / total) * 100 : 0;
+      const col = WEEK_COLORS[wk % WEEK_COLORS.length];
+      weekly += `<div class="hab-week">
+        <div class="hw-count" style="color:${col}"><b>${done}</b> / ${total}</div>
+        ${habRing(pct, col)}
+        <div class="hw-lbl">Week ${wk + 1} · ${start}–${end}</div>
+      </div>`;
+      wk++;
+    }
+    $("habWeekly").innerHTML = weekly;
   }
 
   /* habit modal */
@@ -2882,6 +2999,9 @@
 
   /* habit modal wiring */
   fillHabitEmoji();
+  $("habPrev").addEventListener("click", () => habShiftMonth(-1));
+  $("habNext").addEventListener("click", () => habShiftMonth(1));
+  $("habToday").addEventListener("click", () => { const n = new Date(); habitMonth = { y: n.getFullYear(), m: n.getMonth() }; renderHabits(); });
   $("openHabitBtn").addEventListener("click", () => { habitResetForm(); openHabitModal(); });
   $("habitCloseBtn").addEventListener("click", () => { habitResetForm(); closeHabitModal(); });
   $("habitCancelBtn").addEventListener("click", () => { habitResetForm(); closeHabitModal(); });
