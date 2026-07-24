@@ -268,6 +268,14 @@
   .mode-toggle .mode-btn.active { background: var(--panel-2); color: var(--text); box-shadow: 0 0 0 1px var(--accent) inset; }
   .cardio-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .cardio-fields label { font-size: 11px; }
+  /* machine / free-weight toggle on a strength exercise */
+  .eq-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; padding: 6px 13px; border-radius: 16px; cursor: pointer; margin: 0 0 10px 6px; vertical-align: top; }
+  .eq-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+  /* machine badge shown on a logged exercise */
+  .ex-badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); margin-left: 6px; white-space: nowrap; font-weight: 600; }
+  /* meal-type slot pill on a logged meal */
+  .slot-tag { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+  .slot-toggle { flex-wrap: wrap; }
 
   /* larger scrollable modal for the workout form */
   .modal-lg { max-width: 560px; }
@@ -418,6 +426,30 @@
   .meal-row .macro-pills { flex-shrink: 0; }
   .meal-row .btn { padding: 4px 8px; font-size: 12px; }
 
+  /* ===== Habits ===== */
+  .habit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .habit-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 15px; display: flex; align-items: center; gap: 12px; transition: border-color .15s, background .15s; }
+  .habit-card.done { border-color: var(--accent); background: var(--accent-dim); }
+  .habit-check { width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; border: 1px solid var(--border); background: var(--panel-2); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .habit-card.done .habit-check { background: var(--accent); border-color: var(--accent); }
+  .habit-body { flex: 1; min-width: 0; }
+  .habit-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .habit-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .habit-dots { display: inline-flex; gap: 3px; }
+  .habit-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--border); }
+  .habit-dot.on { background: var(--accent); border-color: var(--accent); }
+  .habit-del { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 12px; flex-shrink: 0; }
+  .habit-del:hover { color: var(--danger); border-color: var(--danger); }
+  .habit-sum { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .habit-sum .hs-num { font-family: var(--font-mono); font-weight: 300; font-size: 30px; line-height: 1; }
+  .emoji-picks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .emoji-pick { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel-2); font-size: 18px; cursor: pointer; }
+  .emoji-pick.active { border-color: var(--accent); background: var(--accent-dim); }
+  /* compact tappable habit chips on the dashboard */
+  .habit-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .habit-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; }
+  .habit-chip.on { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
   /* plan editor */
   .pe-day { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; background: var(--panel-2); }
   .pe-day .pe-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
@@ -525,6 +557,7 @@
     <button data-page="bp">Blood Pressure</button>
     <button data-page="plans">Plans</button>
     <button data-page="nutrition">Nutrition</button>
+    <button data-page="habits">Habits</button>
     <button data-page="streaks">Streaks</button>
   </nav>
   <div class="spacer"></div>
@@ -776,6 +809,21 @@
   </section>
 
   <!-- ===================== STREAKS ===================== -->
+  <!-- ===================== HABITS ===================== -->
+  <section class="page" id="page-habits">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Habits</h1>
+        <p class="page-sub" style="margin-bottom:0;">Check off your daily habits — pills, vitamins, brushing teeth, whatever keeps you 1% better. Tap the circle when it's done.</p>
+      </div>
+      <button class="btn" id="openHabitBtn">+ Add Habit</button>
+    </div>
+
+    <div class="card" id="habitSummary" style="display:none;"></div>
+    <div class="habit-grid" id="habitGrid"></div>
+  </section>
+
+  <!-- ===================== STREAKS ===================== -->
   <section class="page" id="page-streaks">
     <div class="page-head">
       <div>
@@ -877,6 +925,37 @@
     </div>
   </section>
 
+</div>
+
+<!-- ===================== HABIT MODAL ===================== -->
+<div class="overlay" id="habitOverlay">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 id="habitFormTitle">Add a Habit</h3>
+      <button class="icon-btn" id="habitCloseBtn" title="Close">✕</button>
+    </div>
+    <div class="modal-body modal-scroll">
+      <form id="habitForm">
+        <input type="hidden" id="hEditId" />
+        <div class="grid">
+          <div class="full">
+            <label for="hName">Habit name</label>
+            <input id="hName" placeholder="e.g. Medication, Vitamins, Brush teeth, Floss" required />
+          </div>
+          <div class="full">
+            <label for="hIcon">Icon</label>
+            <input id="hIcon" placeholder="💊" maxlength="4" style="max-width:110px;" />
+            <div class="emoji-picks" id="hEmojiPicks"></div>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button type="submit" class="btn" id="hSubmitBtn">Add Habit</button>
+          <button type="button" class="btn danger" id="hDeleteBtn" style="display:none;">Delete</button>
+          <button type="button" class="btn secondary" id="habitCancelBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- ===================== STREAK MODAL ===================== -->
@@ -1023,6 +1102,16 @@
           <div class="full">
             <label for="mName">Meal name</label>
             <input id="mName" placeholder="e.g. Chicken bowl, Steak &amp; potatoes" required />
+          </div>
+          <div class="full">
+            <label>Meal type</label>
+            <div class="mode-toggle slot-toggle" id="mSlotToggle">
+              <button type="button" class="mode-btn" data-slot="breakfast">🌅 Breakfast</button>
+              <button type="button" class="mode-btn" data-slot="lunch">🥪 Lunch</button>
+              <button type="button" class="mode-btn" data-slot="dinner">🍽 Dinner</button>
+              <button type="button" class="mode-btn" data-slot="snack">🍎 Snack</button>
+            </div>
+            <input type="hidden" id="mSlot" />
           </div>
           <div>
             <label for="mDate">Date</label>
@@ -1228,6 +1317,7 @@
   const normalizeExercise = (x) => ({
     mode: x && x.mode === "cardio" ? "cardio" : "strength",
     name: String(x && x.name != null ? x.name : ""),
+    machine: !!(x && x.machine),
     sets: Array.isArray(x && x.sets) ? x.sets.filter((s) => s && typeof s === "object").map(normalizeSet) : [],
     duration: x && x.duration != null ? x.duration : "",
     distance: x && x.distance != null ? x.distance : "",
@@ -1404,6 +1494,7 @@
     id: safeId(m && m.id != null ? m.id : Date.now()),
     date: m && typeof m.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(m.date) ? m.date : "",
     name: String(m && m.name != null ? m.name : ""),
+    slot: m && ["breakfast", "lunch", "dinner", "snack"].includes(m.slot) ? m.slot : "",
     recipeId: m && m.recipeId != null ? String(m.recipeId) : "",
     servings: m && m.servings != null ? m.servings : "1",
     cal: m && m.cal != null ? m.cal : "",
@@ -1480,11 +1571,39 @@
     catch (e) { alert("Could not save — storage is full or unavailable."); return false; }
   };
 
+  /* ---------- habits (pills, vitamins, brushing teeth, etc.) ---------- */
+  const HKEY = "gymTracker.habits.v1";
+  const HSEED_FLAG = "gymTracker.habitsSeed.v1";
+  const HABIT_SEED = [
+    { id: "h_meds",     name: "Medication",       icon: "💊" },
+    { id: "h_vitamins", name: "Vitamins",         icon: "🌿" },
+    { id: "h_teeth_am", name: "Brush teeth (AM)", icon: "🪥" },
+    { id: "h_teeth_pm", name: "Brush teeth (PM)", icon: "🪥" },
+  ];
+  const loadHabits = () => {
+    try {
+      const v = JSON.parse(localStorage.getItem(HKEY));
+      const o = v && typeof v === "object" && !Array.isArray(v) ? v : {};
+      const defs = Array.isArray(o.defs) ? o.defs.filter((d) => d && typeof d === "object").map((d) => ({
+        id: safeId(d.id != null ? d.id : Date.now()),
+        name: String(d.name != null ? d.name : ""),
+        icon: String(d.icon != null && String(d.icon).trim() ? d.icon : "✅"),
+      })) : [];
+      const log = o.log && typeof o.log === "object" && !Array.isArray(o.log) ? o.log : {};
+      return { defs, log };
+    } catch { return { defs: [], log: {} }; }
+  };
+  const saveHabits = () => {
+    try { localStorage.setItem(HKEY, JSON.stringify(habits)); return true; }
+    catch (e) { alert("Could not save — storage is full or unavailable."); return false; }
+  };
+
   let nut = loadNut();
   let shop = loadShop();
   let pantry = loadPantry();
   let weighins = loadWeighins();
   let daily = loadDaily();
+  let habits = loadHabits();
   // does a shopping item overlap something already in the house? (loose word-match)
   const inPantry = (name) => {
     const n = String(name).toLowerCase();
@@ -1641,7 +1760,7 @@
   let exDraft = [];
   const distUnit = () => (profile.unit === "kg" ? "km" : "mi");
   function blankSet() { return { reps: "", weight: "" }; }
-  function blankExercise() { return { mode: "strength", name: "", sets: [blankSet()], duration: "", distance: "" }; }
+  function blankExercise() { return { mode: "strength", name: "", machine: false, sets: [blankSet()], duration: "", distance: "" }; }
 
   function renderExEditor() {
     exDraft = exDraft.length ? exDraft : [blankExercise()];
@@ -1695,13 +1814,15 @@
           <button type="button" class="btn secondary add-set" data-ex="${i}">+ Add set</button>`;
       }
       const placeholder = mode === "cardio" ? "Cardio (e.g. Treadmill, Bike, Run)" : "Exercise / machine (e.g. Leg Press)";
+      const eqToggle = mode === "cardio" ? "" :
+        `<button type="button" class="eq-btn ${ex.machine ? "active" : ""}" data-ex="${i}" title="Mark this as a machine (vs. free weight)">⚙️ Machine</button>`;
       return `
-        <div class="ex-block" data-mode="${mode}">
+        <div class="ex-block" data-mode="${mode}" data-machine="${ex.machine ? 1 : 0}">
           <div class="ex-head">
             <input class="ex-name-input" data-field="exname" placeholder="${placeholder}" value="${esc(ex.name || "")}" />
             <button type="button" class="btn ghost ex-del" data-ex="${i}">Remove</button>
           </div>
-          ${toggle}
+          ${toggle}${eqToggle}
           ${body}
         </div>`;
     }).join("") + `<button type="button" class="btn add-ex">+ Add exercise</button>`;
@@ -1724,6 +1845,7 @@
       next.push({
         mode,
         name: nameInput ? nameInput.value : "",
+        machine: mode === "strength" && blk.dataset.machine === "1",
         sets: sets.length ? sets : [blankSet()],
         duration: dur ? dur.value : "",
         distance: dist ? dist.value : "",
@@ -1735,7 +1857,12 @@
   $("exEditor").addEventListener("click", (e) => {
     const t = e.target;
     if (t.closest(".step-btn")) return; // handled by the global stepper listener
-    if (t.classList.contains("mode-btn")) {
+    if (t.classList.contains("eq-btn")) {
+      syncExDraft();
+      const i = +t.dataset.ex;
+      if (exDraft[i]) exDraft[i].machine = !exDraft[i].machine;
+      renderExEditor();
+    } else if (t.classList.contains("mode-btn")) {
       syncExDraft();
       const i = +t.dataset.ex;
       if (exDraft[i]) exDraft[i].mode = t.dataset.mode === "cardio" ? "cardio" : "strength";
@@ -1796,8 +1923,8 @@
     const exercises = exDraft
       .map((ex) => {
         const mode = ex.mode === "cardio" ? "cardio" : "strength";
-        if (mode === "cardio") return { mode, name: (ex.name || "").trim(), sets: [], duration: ex.duration || "", distance: ex.distance || "" };
-        return { mode, name: (ex.name || "").trim(), duration: "", distance: "", sets: (ex.sets || []).filter((st) => String(st.reps).trim() !== "" || String(st.weight).trim() !== "") };
+        if (mode === "cardio") return { mode, name: (ex.name || "").trim(), machine: false, sets: [], duration: ex.duration || "", distance: ex.distance || "" };
+        return { mode, name: (ex.name || "").trim(), machine: !!ex.machine, duration: "", distance: "", sets: (ex.sets || []).filter((st) => String(st.reps).trim() !== "" || String(st.weight).trim() !== "") };
       })
       .filter((ex) => (ex.mode === "cardio" ? (ex.name || String(ex.duration).trim() || String(ex.distance).trim()) : (ex.name || ex.sets.length)));
     const entry = {
@@ -1835,6 +1962,7 @@
       exDraft = w.exercises.map((ex) => ({
         mode: ex.mode === "cardio" ? "cardio" : "strength",
         name: ex.name || "",
+        machine: !!ex.machine,
         sets: ex.sets && ex.sets.length ? ex.sets.map((st) => ({ reps: st.reps ?? "", weight: st.weight ?? "" })) : [blankSet()],
         duration: ex.duration ?? "",
         distance: ex.distance ?? "",
@@ -2024,6 +2152,7 @@
     renderList();
     renderBP();
     renderStreaks();
+    renderHabits();
     renderPlans();
     renderNutrition();
     renderExerciseProgress();
@@ -2291,7 +2420,8 @@
     if (ex) {
       exHtml = `<div class="ex-table">` + w.exercises.map((x) => {
         const chips = exChips(x);
-        return `<div class="ex-item"><span class="ex-item-name">${x.name ? esc(x.name) : "Exercise"}</span><span class="ex-chips">${chips}</span></div>`;
+        const badge = x.machine ? `<span class="ex-badge" title="Machine (not free weight)">⚙️ Machine</span>` : "";
+        return `<div class="ex-item"><span class="ex-item-name">${x.name ? esc(x.name) : "Exercise"}${badge}</span><span class="ex-chips">${chips}</span></div>`;
       }).join("") + `</div>`;
     }
 
@@ -2597,6 +2727,99 @@
     }).join("");
   }
 
+  /* ---------- habits (daily check-off) ---------- */
+  const habitDone = (id, key) => !!(habits.log[key] && habits.log[key][id]);
+  function habitToggle(id) {
+    const t = dayKey(new Date());
+    const day = habits.log[t] || (habits.log[t] = {});
+    if (day[id]) delete day[id]; else day[id] = 1;
+    if (!Object.keys(day).length) delete habits.log[t];
+    if (saveHabits()) render();
+  }
+  // consecutive days done, ending today (today still counts as "pending", not a break, until the day is over)
+  function habitStreak(id) {
+    let count = 0;
+    const d = new Date();
+    if (!habitDone(id, dayKey(d))) d.setDate(d.getDate() - 1);
+    while (habitDone(id, dayKey(d))) { count++; d.setDate(d.getDate() - 1); }
+    return count;
+  }
+  function habitLast7(id) {
+    const out = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); out.push(habitDone(id, dayKey(d))); }
+    return out;
+  }
+  function renderHabits() {
+    const t = dayKey(new Date());
+    const defs = habits.defs;
+    if (!defs.length) {
+      $("habitSummary").style.display = "none";
+      $("habitGrid").innerHTML = `<div class="empty" style="grid-column:1/-1">No habits yet. Hit <b>+ Add Habit</b> to track pills, vitamins, brushing teeth — anything you want to do daily. ✅</div>`;
+      return;
+    }
+    const done = defs.filter((h) => habitDone(h.id, t)).length;
+    const pct = Math.round((done / defs.length) * 100);
+    $("habitSummary").style.display = "";
+    $("habitSummary").innerHTML = `
+      <div class="habit-sum">
+        <div><div class="hs-num" style="color:${done === defs.length ? "var(--accent)" : "var(--text)"}">${done}/${defs.length}</div><div class="ms-lbl" style="font-size:11px;color:var(--muted);">done today</div></div>
+        <div style="flex:1;min-width:140px;">
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;">${done === defs.length ? "🎯 All habits done today — nice." : `${defs.length - done} to go`}</div>
+        </div>
+      </div>`;
+    $("habitGrid").innerHTML = defs.map((h) => {
+      const isDone = habitDone(h.id, t);
+      const streak = habitStreak(h.id);
+      const dots = habitLast7(h.id).map((on) => `<span class="habit-dot ${on ? "on" : ""}"></span>`).join("");
+      return `
+        <div class="habit-card ${isDone ? "done" : ""}">
+          <button class="habit-check" title="${isDone ? "Done today — tap to undo" : "Mark done for today"}" onclick="habitToggle('${h.id}')">${isDone ? "✓" : ""}</button>
+          <div class="habit-body">
+            <div class="habit-name">${esc(h.icon)} ${esc(h.name)}</div>
+            <div class="habit-meta">
+              <span>${streak ? `🔥 ${streak}-day streak` : "Not started yet"}</span>
+              <span class="habit-dots" title="Last 7 days">${dots}</span>
+            </div>
+          </div>
+          <button class="habit-del" title="Edit / delete" onclick="habitEdit('${h.id}')">✎</button>
+        </div>`;
+    }).join("");
+  }
+
+  /* habit modal */
+  const HABIT_EMOJI = ["💊", "🌿", "🪥", "🧴", "💧", "🧵", "☀️", "🧘", "📖", "🏃", "😴", "🥗", "🚭", "✅"];
+  function openHabitModal() { $("habitOverlay").classList.add("open"); }
+  function closeHabitModal() { $("habitOverlay").classList.remove("open"); }
+  function habitPickIcon(v) {
+    $("hIcon").value = v;
+    document.querySelectorAll("#hEmojiPicks .emoji-pick").forEach((b) => b.classList.toggle("active", b.dataset.emoji === v));
+  }
+  function fillHabitEmoji() {
+    $("hEmojiPicks").innerHTML = HABIT_EMOJI.map((e) => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="habitPickIcon('${e}')">${e}</button>`).join("");
+  }
+  function habitResetForm() {
+    $("habitForm").reset(); $("hEditId").value = "";
+    habitPickIcon("💊");
+    $("habitFormTitle").textContent = "Add a Habit"; $("hSubmitBtn").textContent = "Add Habit";
+    $("hDeleteBtn").style.display = "none";
+  }
+  function habitEdit(id) {
+    const h = habits.defs.find((x) => x.id === id);
+    if (!h) return;
+    habitResetForm();
+    $("hEditId").value = h.id; $("hName").value = h.name; habitPickIcon(h.icon);
+    $("habitFormTitle").textContent = "Edit Habit"; $("hSubmitBtn").textContent = "Save Changes";
+    $("hDeleteBtn").style.display = "inline-block";
+    openHabitModal();
+  }
+  function habitDelete(id) {
+    if (!confirm("Delete this habit? Its check-off history will be removed too.")) return;
+    habits.defs = habits.defs.filter((x) => x.id !== id);
+    Object.keys(habits.log).forEach((k) => { if (habits.log[k]) { delete habits.log[k][id]; if (!Object.keys(habits.log[k]).length) delete habits.log[k]; } });
+    if (saveHabits()) { habitResetForm(); closeHabitModal(); render(); }
+  }
+
   function renderStreaks() {
     if (!streaks.length) {
       $("streakGrid").innerHTML = `<div class="empty" style="grid-column:1/-1">No streaks yet. Add one below — day 1 starts now. 💪</div>`;
@@ -2656,6 +2879,27 @@
   $("streakCloseBtn").addEventListener("click", closeStreakModal);
   $("streakCancelBtn").addEventListener("click", closeStreakModal);
   $("streakOverlay").addEventListener("click", (e) => { if (e.target === $("streakOverlay")) closeStreakModal(); });
+
+  /* habit modal wiring */
+  fillHabitEmoji();
+  $("openHabitBtn").addEventListener("click", () => { habitResetForm(); openHabitModal(); });
+  $("habitCloseBtn").addEventListener("click", () => { habitResetForm(); closeHabitModal(); });
+  $("habitCancelBtn").addEventListener("click", () => { habitResetForm(); closeHabitModal(); });
+  $("habitOverlay").addEventListener("click", (e) => { if (e.target === $("habitOverlay")) { habitResetForm(); closeHabitModal(); } });
+  $("hDeleteBtn").addEventListener("click", () => { if ($("hEditId").value) habitDelete($("hEditId").value); });
+  $("hIcon").addEventListener("input", () => habitPickIcon($("hIcon").value.trim()));
+  $("habitForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("hName").value.trim();
+    if (!name) return;
+    const icon = $("hIcon").value.trim() || "✅";
+    const id = $("hEditId").value;
+    const prev = habits.defs;
+    if (id) habits.defs = habits.defs.map((h) => (h.id === id ? { ...h, name, icon } : h));
+    else habits.defs = habits.defs.concat([{ id: "h" + Date.now(), name, icon }]);
+    if (saveHabits()) { habitResetForm(); closeHabitModal(); render(); }
+    else habits.defs = prev;
+  });
 
   $("stForm").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -2849,13 +3093,33 @@
     </div>`;
   }
 
+  const SLOT_META = {
+    breakfast: { icon: "🌅", label: "Breakfast", order: 0 },
+    lunch:     { icon: "🥪", label: "Lunch",     order: 1 },
+    dinner:    { icon: "🍽", label: "Dinner",    order: 2 },
+    snack:     { icon: "🍎", label: "Snack",     order: 3 },
+  };
+  const slotOrder = (m) => (SLOT_META[m && m.slot] ? SLOT_META[m.slot].order : 9);
+  // meals sorted newest day first, but chronological (breakfast→dinner) within a day
+  const sortMeals = (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : slotOrder(a) - slotOrder(b) || Number(a.id) - Number(b.id));
+  function defaultSlot() {
+    const h = new Date().getHours();
+    if (h < 11) return "breakfast";
+    if (h < 15) return "lunch";
+    if (h < 21) return "dinner";
+    return "snack";
+  }
+
   function mealRowHtml(m, showDate) {
     const pills = [];
     if (String(m.cal).trim() !== "" && Number(m.cal)) pills.push(`<span class="macro-pill sm" style="color:var(--m-cal)"><b>${Math.round(Number(m.cal))}</b> cal</span>`);
     if (String(m.prot).trim() !== "" && Number(m.prot)) pills.push(`<span class="macro-pill sm" style="color:var(--m-prot)"><b>${Math.round(Number(m.prot))}</b>g P</span>`);
     const dateStr = showDate && m.date ? `<span class="m-macros" style="margin-right:2px;">${esc(asDate(m.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}</span>` : "";
+    const sm = SLOT_META[m.slot];
+    const slotTag = sm ? `<span class="slot-tag" title="${sm.label}">${sm.icon}</span>` : `<span class="slot-tag"></span>`;
     return `
       <div class="meal-row">
+        ${slotTag}
         <span class="m-name">${esc(m.name)}</span>
         ${dateStr}
         <span class="macro-pills">${pills.join("")}</span>
@@ -2940,7 +3204,7 @@
 
   function renderMealList() {
     if (!nut.meals.length) { $("mealList").innerHTML = `<div class="empty">No meals logged yet. Hit + Log Meal after you eat 🍽</div>`; return; }
-    const sorted = [...nut.meals].sort(sortByDate).slice(0, 60);
+    const sorted = [...nut.meals].sort(sortMeals).slice(0, 60);
     let html = "", lastDate = null;
     sorted.forEach((m) => {
       if (m.date !== lastDate) {
@@ -3141,10 +3405,18 @@
     const mul = (v) => (v === "" || v == null ? "" : Math.round(Number(v) * sv * 10) / 10);
     $("mCal").value = mul(r.cal); $("mProt").value = mul(r.prot); $("mCarb").value = mul(r.carb); $("mFat").value = mul(r.fat);
   }
+  function setMealSlot(slot) {
+    $("mSlot").value = slot || "";
+    document.querySelectorAll("#mSlotToggle .mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.slot === slot));
+  }
+  document.querySelectorAll("#mSlotToggle .mode-btn").forEach((b) =>
+    b.addEventListener("click", () => setMealSlot($("mSlot").value === b.dataset.slot ? "" : b.dataset.slot))
+  );
   function mealResetForm() {
     $("mealForm").reset(); $("mEditId").value = "";
     $("mDate").value = dayKey(new Date()); $("mServ").value = "1"; $("fServ").value = "1";
     $("mName").dataset.auto = "";
+    setMealSlot(defaultSlot());
     fillRecipeSelect("");
     foodDraft = [];
     renderFoodDraft();
@@ -3169,7 +3441,7 @@
     e.preventDefault();
     const m = {
       id: $("mEditId").value || String(Date.now()),
-      date: $("mDate").value, name: $("mName").value.trim(), recipeId: $("mRecipe").value,
+      date: $("mDate").value, name: $("mName").value.trim(), recipeId: $("mRecipe").value, slot: $("mSlot").value,
       servings: $("mServ").value, cal: $("mCal").value, prot: $("mProt").value, carb: $("mCarb").value, fat: $("mFat").value,
     };
     const prevMeals = nut.meals;
@@ -3189,6 +3461,7 @@
     mealResetForm();
     $("mEditId").value = m.id; fillRecipeSelect(m.recipeId);
     $("mName").value = m.name; $("mDate").value = m.date; $("mServ").value = m.servings;
+    setMealSlot(m.slot || "");
     $("mCal").value = m.cal; $("mProt").value = m.prot; $("mCarb").value = m.carb; $("mFat").value = m.fat;
     $("mealFormTitle").textContent = "Edit Meal"; $("mSubmitBtn").textContent = "Save Changes";
     $("mDeleteBtn").style.display = "inline-block";
@@ -3378,7 +3651,18 @@
           <div><h2 class="section" style="margin-bottom:6px;">💧 Water · 7d</h2>${svgBars(habits7d("water"), PALETTE[5])}</div>
           <div><h2 class="section" style="margin-bottom:6px;">😴 Sleep · 7d</h2>${svgBars(habits7d("sleep"), PALETTE[3])}</div>
         </div>
+        ${dashHabitChips()}
       </div>`;
+  }
+  // quick tappable habit chips on the dashboard (pills, vitamins, teeth…) — mirrors the Habits page
+  function dashHabitChips() {
+    if (!habits.defs.length) return "";
+    const t = dayKey(new Date());
+    const chips = habits.defs.map((h) => {
+      const on = habitDone(h.id, t);
+      return `<button class="habit-chip ${on ? "on" : ""}" onclick="habitToggle('${h.id}')" title="${on ? "Done today — tap to undo" : "Mark done"}">${esc(h.icon)} ${esc(h.name)}${on ? " ✓" : ""}</button>`;
+    }).join("");
+    return `<h2 class="section" style="margin:14px 0 6px;">Daily Check-off</h2><div class="habit-chips">${chips}</div>`;
   }
 
   /* ---------- plan editor ---------- */
@@ -3455,6 +3739,7 @@
       recipeOverlay: () => { recipeResetForm(); closeRecipeModal(); },
       ingrOverlay: () => ingrCloseModal(),
       mealOverlay: () => { mealResetForm(); closeMealModal(); },
+      habitOverlay: () => { habitResetForm(); closeHabitModal(); },
       planOverlay: () => closePlanEditor(),
     };
     (closers[open.id] || (() => open.classList.remove("open")))();
@@ -3472,7 +3757,7 @@
 
   /* ---------- settings modal ---------- */
   /* ---------- backup / restore ---------- */
-  const DATA_KEYS = [KEY, PKEY, BKEY, SKEY, PLKEY, PCKEY, NKEY, SHKEY, PANKEY, SEED_FLAG, WKEY, DKEY];
+  const DATA_KEYS = [KEY, PKEY, BKEY, SKEY, PLKEY, PCKEY, NKEY, SHKEY, PANKEY, SEED_FLAG, WKEY, DKEY, HKEY, HSEED_FLAG];
   const SNAPKEY = "gymTracker.snapshot.v1";
   function collectAll() {
     const out = { app: "gym-tracker", version: 1, exported: new Date().toISOString(), data: {} };
@@ -3486,7 +3771,7 @@
   const setLastBackup = () => { try { localStorage.setItem(LBKEY, dayKey(new Date())); } catch (e) {} };
   const snoozeBackupNag = () => { try { const d = new Date(); d.setDate(d.getDate() + 2); localStorage.setItem(NAGKEY, dayKey(d)); } catch (e) {} };
   // only nag once you've actually logged something worth losing (seeded recipes don't count)
-  const hasAnyData = () => workouts.length || bp.length || streaks.length || nut.meals.length || weighins.length || Object.keys(daily).length;
+  const hasAnyData = () => workouts.length || bp.length || streaks.length || nut.meals.length || weighins.length || Object.keys(daily).length || Object.keys(habits.log).length;
 
   function exportAll() {
     const blob = new Blob([JSON.stringify(collectAll(), null, 2)], { type: "application/json" });
@@ -3667,6 +3952,18 @@
     let changed = false;
     Object.keys(daily).forEach((k) => { if (k < min) { delete daily[k]; changed = true; } });
     if (changed) saveDaily();
+  })();
+  // seed a few starter habits on first run; prune old check-off history
+  (function initHabits() {
+    let changed = false;
+    if (!localStorage.getItem(HSEED_FLAG)) {
+      if (!habits.defs.length) { habits.defs = HABIT_SEED.map((h) => ({ ...h })); changed = true; }
+      try { localStorage.setItem(HSEED_FLAG, "1"); } catch (e) {}
+    }
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 400);
+    const min = dayKey(cutoff);
+    Object.keys(habits.log).forEach((k) => { if (k < min) { delete habits.log[k]; changed = true; } });
+    if (changed) saveHabits();
   })();
   takeSnapshot(); // daily auto-backup of all data
   // PWA: register the service worker only when served over http(s) — double-clicking the file keeps working as before
