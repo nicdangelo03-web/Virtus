@@ -80,6 +80,12 @@
   }
   .nav button:hover { color: var(--text); background: var(--panel-2); }
   .nav button.active { color: var(--accent); background: var(--accent-dim); }
+  /* grouped dropdown nav */
+  .nav-group { position: relative; display: inline-flex; }
+  .nav-grp.menu-open { color: var(--text); background: var(--panel-2); }
+  .nav-menu { position: fixed; display: none; flex-direction: column; gap: 2px; min-width: 190px; background: var(--panel); border: 1px solid var(--border); border-radius: 11px; padding: 5px; z-index: 200; box-shadow: 0 14px 34px rgba(0,0,0,.45); }
+  .nav-menu.open { display: flex; }
+  .nav-menu button { text-align: left; width: 100%; white-space: nowrap; letter-spacing: 1.4px; }
   .spacer { flex: 1; }
   .icon-btn {
     width: 36px; height: 36px; border-radius: 9px;
@@ -401,10 +407,17 @@
   .backup-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(255,159,67,.12); border-bottom: 1px solid rgba(255,159,67,.35); color: var(--text); font-size: 13px; padding: 10px 18px; }
   .backup-banner .bb-actions { display: flex; gap: 8px; flex-shrink: 0; }
   @media (max-width: 760px) { .backup-banner { padding: 9px 12px; font-size: 12.5px; } }
+  .file-warn { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(248,113,113,.14); border-bottom: 1px solid rgba(248,113,113,.4); color: var(--text); font-size: 12.5px; padding: 10px 18px; }
+  .file-warn .btn { flex-shrink: 0; }
   .food-builder { border: 1px solid var(--border-strong); border-radius: 12px; padding: 12px; background: var(--panel-2); }
   .food-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-strong); font-size: 12.5px; }
   .food-total b { font-family: var(--font-mono); font-weight: 500; }
   .fb-empty { font-size: 12.5px; color: var(--faint); padding: 8px 2px; }
+  .fb-custom { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .fb-custom > input { width: 100%; }
+  .fb-macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .fb-tag { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 999px; padding: 1px 6px; vertical-align: middle; }
+  @media (max-width: 560px) { .fb-macros { grid-template-columns: repeat(2, 1fr); } }
   /* macro color system — vivid on dark, darker-but-readable on light */
   :root { --m-cal: var(--text); --m-prot: #34d399; --m-carb: #ffb020; --m-fat: #8fb0ff; --m-sets: #4f8cff; --m-vol: #34d399; --m-min: #22c1c3; --m-rpe: #ff9f43; }
   [data-theme="light"] { --m-cal: var(--text); --m-prot: #0d9f6e; --m-carb: #b3730a; --m-fat: #3b5bdb; --m-sets: #2f6bff; --m-vol: #0d9f6e; --m-min: #0d8a8f; --m-rpe: #b3730a; }
@@ -425,6 +438,23 @@
   .meal-row .m-macros { font-size: 12px; color: var(--muted); white-space: nowrap; }
   .meal-row .macro-pills { flex-shrink: 0; }
   .meal-row .btn { padding: 4px 8px; font-size: 12px; }
+
+  /* weight history rows */
+  .wt-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .wt-row:last-child { border-bottom: none; }
+  .wt-row .wt-date { flex: 1; font-size: 13.5px; color: var(--muted); min-width: 0; }
+  .wt-row .wt-tod { font-size: 11.5px; color: var(--faint); min-width: 84px; white-space: nowrap; }
+  .wt-row .wt-wt { font-family: var(--font-mono); font-size: 15px; font-weight: 500; min-width: 74px; text-align: right; }
+  .wt-row .wt-delta { font-family: var(--font-mono); font-size: 12px; min-width: 66px; text-align: right; }
+  .wt-row .btn.ghost { padding: 2px 7px; }
+  @media (max-width: 560px) { .wt-row .wt-tod { min-width: 0; } .wt-row .wt-date { flex: 2; } }
+  /* compact weight widget on Nutrition */
+  .nutw-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .nutw-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nutw-num { font-family: var(--font-mono); font-weight: 300; font-size: 30px; line-height: 1; }
+  .nutw-num span { font-size: 14px; color: var(--muted); }
+  .nutw-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .nutw-delta { font-family: var(--font-mono); font-size: 14px; font-weight: 500; }
 
   /* ===== Habits — monthly grid ===== */
   .hab-monthbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -580,12 +610,29 @@
   <div class="brand">Gym Tracker</div>
   <nav class="nav">
     <button data-page="dashboard" class="active">Dashboard</button>
-    <button data-page="log">Logged Workouts</button>
-    <button data-page="bp">Blood Pressure</button>
-    <button data-page="plans">Plans</button>
-    <button data-page="nutrition">Nutrition</button>
-    <button data-page="habits">Habits</button>
-    <button data-page="streaks">Streaks</button>
+    <button data-page="log">Workouts</button>
+    <div class="nav-group">
+      <button class="nav-grp" data-group="g-nutrition">Nutrition ▾</button>
+      <div class="nav-menu" id="g-nutrition">
+        <button data-page="nutrition">Log &amp; Targets</button>
+        <button data-page="library">Recipes &amp; Shopping</button>
+      </div>
+    </div>
+    <div class="nav-group">
+      <button class="nav-grp" data-group="g-health">Health ▾</button>
+      <div class="nav-menu" id="g-health">
+        <button data-page="weight">Weight</button>
+        <button data-page="bp">Blood Pressure</button>
+      </div>
+    </div>
+    <div class="nav-group">
+      <button class="nav-grp" data-group="g-routine">Routine ▾</button>
+      <div class="nav-menu" id="g-routine">
+        <button data-page="habits">Habits</button>
+        <button data-page="streaks">Streaks</button>
+        <button data-page="plans">Plans</button>
+      </div>
+    </div>
   </nav>
   <div class="spacer"></div>
   <button class="icon-btn" id="profileBtn" title="Profile &amp; Settings">⚙️</button>
@@ -706,9 +753,59 @@
       <h2 class="section">Reading History</h2>
       <div class="filters">
         <select id="bpFilterCat"><option value="">All categories</option></select>
-        <button class="btn secondary" id="bpExportBtn" title="Download readings as JSON">Export</button>
+        <button class="btn secondary" id="bpReportBtn" title="Open a clean printable report to show or send your doctor">🖨 Doctor report</button>
+        <button class="btn secondary" id="bpCsvBtn" title="Download readings as a CSV spreadsheet">⬇ CSV</button>
       </div>
       <div id="bpList"></div>
+    </div>
+  </section>
+
+  <!-- ===================== WEIGHT ===================== -->
+  <section class="page" id="page-weight">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Weight</h1>
+        <p class="page-sub" style="margin-bottom:0;">Log your weight over time and watch the trend. Your latest weigh-in also sets the bodyweight behind your protein target.</p>
+      </div>
+      <button class="btn secondary" id="wtCsvBtn" title="Download your weight log as a CSV spreadsheet">⬇ CSV</button>
+    </div>
+
+    <div class="stats" id="wtStats"></div>
+
+    <div class="dash-grid">
+      <div class="chart-card">
+        <h2 class="section">Weight Trend (last 30)</h2>
+        <div id="wtChart"></div>
+        <p class="plan-note" id="wtNote" style="margin:8px 0 0;"></p>
+      </div>
+      <div class="chart-card">
+        <h2 class="section">Log a Weigh-in</h2>
+        <form id="wtForm">
+          <div class="field"><label for="wtDate">Date</label><input id="wtDate" type="date" required /></div>
+          <div class="field"><label>Time of day</label>
+            <div class="mode-toggle slot-toggle" id="wtTodToggle">
+              <button type="button" class="mode-btn" data-tod="morning">🌅 Morning</button>
+              <button type="button" class="mode-btn" data-tod="midday">☀️ Midday</button>
+              <button type="button" class="mode-btn" data-tod="night">🌙 Night</button>
+            </div>
+            <input type="hidden" id="wtTod" />
+          </div>
+          <div class="field"><label for="wtInput">Weight (<span class="unit">lbs</span>)</label>
+            <div class="num-field">
+              <button type="button" class="step-btn" data-step="-0.5" tabindex="-1">−</button>
+              <input id="wtInput" type="number" step="any" min="1" placeholder="e.g. 180" required />
+              <button type="button" class="step-btn" data-step="0.5" tabindex="-1">+</button>
+            </div>
+          </div>
+          <button type="submit" class="btn" style="width:100%;">Log Weigh-in</button>
+          <p class="plan-note" style="margin:8px 0 0;">Logging the same date &amp; time of day again updates that entry.</p>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section">History</h2>
+      <div id="wtList"></div>
     </div>
   </section>
 
@@ -731,12 +828,9 @@
     <div class="page-head">
       <div>
         <h1 class="page-title">Nutrition</h1>
-        <p class="page-sub" style="margin-bottom:0;">Log meals, build a recipe library, and track calories &amp; protein against your targets.</p>
+        <p class="page-sub" style="margin-bottom:0;">Log meals and track calories &amp; protein against your targets. Recipes &amp; shopping live under <b>Nutrition ▸ Recipes &amp; Shopping</b>.</p>
       </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button class="btn secondary" id="openRecipeBtn">+ Add Recipe</button>
-        <button class="btn" id="openMealBtn">+ Log Meal</button>
-      </div>
+      <button class="btn" id="openMealBtn">+ Log Meal</button>
     </div>
 
     <div class="stats" id="nutStats"></div>
@@ -752,6 +846,26 @@
     <div class="card">
       <h2 class="section">Meal Log</h2>
       <div id="mealList" class="scroll-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="nutw-head">
+        <h2 class="section" style="margin:0;">Weight</h2>
+        <button class="btn secondary mini" onclick="showPage('weight')">Open weight log →</button>
+      </div>
+      <div id="nutWeight"></div>
+    </div>
+
+  </section>
+
+  <!-- ===================== NUTRITION ▸ RECIPES & SHOPPING ===================== -->
+  <section class="page" id="page-library">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Recipes &amp; Shopping</h1>
+        <p class="page-sub" style="margin-bottom:0;">Your recipe library, shopping list, and pantry — the kitchen side of Nutrition.</p>
+      </div>
+      <button class="btn" id="openRecipeBtn">+ Add Recipe</button>
     </div>
 
     <div class="dash-grid">
@@ -780,19 +894,6 @@
           <button type="submit" class="btn secondary mini">Add</button>
         </form>
         <div id="pantryList" class="scroll-list"></div>
-      </div>
-      <div class="chart-card">
-        <h2 class="section">Bodyweight Trend</h2>
-        <form id="bwForm" class="filters" style="margin-bottom:10px;">
-          <div class="num-field" style="flex:1;min-width:130px;">
-            <button type="button" class="step-btn" data-step="-0.5" tabindex="-1">−</button>
-            <input id="bwInput" type="number" step="any" min="1" placeholder="Today's weight" required />
-            <button type="button" class="step-btn" data-step="0.5" tabindex="-1">+</button>
-          </div>
-          <button type="submit" class="btn mini">Log weigh-in</button>
-        </form>
-        <div id="bwChart"></div>
-        <p class="plan-note" id="bwNote" style="margin:8px 0 0;"></p>
       </div>
     </div>
 
@@ -962,6 +1063,8 @@
           <input type="file" id="importFile" accept="application/json,.json" style="display:none;" />
         </div>
         <p class="plan-note" id="snapInfo" style="margin:12px 0 0;"></p>
+        <div class="set-sec">Storage health</div>
+        <p class="plan-note" id="storageInfo" style="margin:0;">Checking…</p>
       </div>
     </div>
   </section>
@@ -1122,20 +1225,26 @@
         <input type="hidden" id="mEditId" />
         <div class="grid">
           <div class="full">
-            <label for="mRecipe">From recipe (optional — fills macros for you)</label>
-            <select id="mRecipe"><option value="">— manual entry —</option></select>
-          </div>
-          <div class="full">
-            <label>Build your meal <span style="font-weight:400;color:var(--muted)">— add as many foods as you want (steak + potato + veg…); macros are averages, editable below</span></label>
+            <label>Build your meal <span style="font-weight:400;color:var(--muted)">— add each food (pizza, sushi, a shake, a saved recipe…); every item adds into the total</span></label>
             <div class="food-builder">
               <div class="filters" style="margin-bottom:0;">
                 <select id="fFood" style="flex:2;min-width:150px;"></select>
-                <div class="num-field" style="flex:1;min-width:110px;">
+                <div class="num-field" id="fServWrap" style="flex:1;min-width:110px;">
                   <button type="button" class="step-btn" data-step="-0.5" tabindex="-1">−</button>
                   <input id="fServ" type="number" step="any" min="0" value="1" title="Servings" />
                   <button type="button" class="step-btn" data-step="0.5" tabindex="-1">+</button>
                 </div>
                 <button type="button" class="btn mini" id="fAddBtn">+ Add food</button>
+              </div>
+              <!-- shown only when "Custom food" is selected: name + your own macros -->
+              <div id="fCustomRow" class="fb-custom" style="display:none;">
+                <input id="fcName" placeholder="Food name (e.g. Pizza slice, Sushi, Protein shake)" />
+                <div class="fb-macros">
+                  <input id="fcCal" type="number" step="any" min="0" placeholder="calories" />
+                  <input id="fcP" type="number" step="any" min="0" placeholder="protein g" />
+                  <input id="fcC" type="number" step="any" min="0" placeholder="carbs g" />
+                  <input id="fcF" type="number" step="any" min="0" placeholder="fat g" />
+                </div>
               </div>
               <div id="fAdded"></div>
             </div>
@@ -1154,17 +1263,9 @@
             </div>
             <input type="hidden" id="mSlot" />
           </div>
-          <div>
+          <div class="full">
             <label for="mDate">Date</label>
             <input id="mDate" type="date" required />
-          </div>
-          <div>
-            <label for="mServ">Recipe servings</label>
-            <div class="num-field">
-              <button type="button" class="step-btn" data-step="-0.5" tabindex="-1">−</button>
-              <input id="mServ" type="number" step="any" min="0" value="1" />
-              <button type="button" class="step-btn" data-step="0.5" tabindex="-1">+</button>
-            </div>
           </div>
           <div class="full"><label style="margin-bottom:0;color:var(--muted);">Macros — auto-filled from the foods/recipe above; edit any field if needed</label></div>
           <div>
@@ -1594,7 +1695,7 @@
     try {
       const v = JSON.parse(localStorage.getItem(WKEY));
       return Array.isArray(v) ? v.filter((x) => x && typeof x === "object" && x.date && x.weight != null)
-        .map((x) => ({ id: safeId(x.id ?? Date.now()), date: String(x.date), weight: Number(x.weight) || 0 })) : [];
+        .map((x) => ({ id: safeId(x.id ?? Date.now()), date: String(x.date), weight: Number(x.weight) || 0, tod: ["morning", "midday", "night"].includes(x.tod) ? x.tod : "" })) : [];
     } catch { return []; }
   };
   const saveWeighins = () => {
@@ -1759,17 +1860,48 @@
     document.querySelectorAll(".unit").forEach((el) => (el.textContent = profile.unit));
   }
 
-  /* ---------- nav ---------- */
-  document.querySelectorAll(".nav button").forEach((b) =>
-    b.addEventListener("click", () => {
-      document.querySelectorAll(".nav button").forEach((x) => x.classList.remove("active"));
-      $("profileBtn").classList.remove("active");
-      b.classList.add("active");
-      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-      $("page-" + b.dataset.page).classList.add("active");
-      window.scrollTo({ top: 0 });
-    })
+  /* ---------- nav (with grouped dropdown menus) ---------- */
+  function closeNavMenus() {
+    document.querySelectorAll(".nav-menu.open").forEach((m) => m.classList.remove("open"));
+    document.querySelectorAll(".nav-grp.menu-open").forEach((b) => b.classList.remove("menu-open"));
+  }
+  function toggleNavMenu(btn) {
+    const menu = $(btn.dataset.group);
+    if (!menu) return;
+    const willOpen = !menu.classList.contains("open");
+    closeNavMenus();
+    if (willOpen) {
+      const r = btn.getBoundingClientRect();
+      menu.style.top = r.bottom + 4 + "px";
+      menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 200)) + "px";
+      menu.classList.add("open");
+      btn.classList.add("menu-open");
+    }
+  }
+  function showPage(pageId) {
+    const el = $("page-" + pageId);
+    if (!el) return;
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    el.classList.add("active");
+    document.querySelectorAll(".nav button").forEach((x) => x.classList.remove("active"));
+    $("profileBtn").classList.remove("active");
+    const pageBtn = document.querySelector('.nav button[data-page="' + pageId + '"]');
+    if (pageBtn) {
+      pageBtn.classList.add("active");
+      const grp = pageBtn.closest(".nav-group");
+      if (grp) { const gb = grp.querySelector(".nav-grp"); if (gb) gb.classList.add("active"); }
+    }
+    closeNavMenus();
+    window.scrollTo({ top: 0 });
+  }
+  document.querySelectorAll(".nav button[data-page]").forEach((b) =>
+    b.addEventListener("click", () => showPage(b.dataset.page))
   );
+  document.querySelectorAll(".nav-grp[data-group]").forEach((b) =>
+    b.addEventListener("click", (e) => { e.stopPropagation(); toggleNavMenu(b); })
+  );
+  document.addEventListener("click", (e) => { if (!e.target.closest(".nav-group")) closeNavMenus(); });
+  window.addEventListener("resize", closeNavMenus);
 
   /* ---------- dashboard chart-mode toggle ---------- */
   document.querySelectorAll("#dashToggle .seg").forEach((b) =>
@@ -2192,6 +2324,7 @@
     renderLogStats();
     renderList();
     renderBP();
+    renderWeight();
     renderStreaks();
     renderHabits();
     renderPlans();
@@ -2574,12 +2707,93 @@
   $("bpSys").addEventListener("input", renderBPFeedback);
   $("bpDia").addEventListener("input", renderBPFeedback);
   $("bpFilterCat").addEventListener("change", renderBPList);
-  $("bpExportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(bp, null, 2)], { type: "application/json" });
+
+  /* ---------- shared export helpers (CSV download + printable report) ---------- */
+  function downloadBlob(filename, text, type) {
+    const blob = new Blob([text], { type: type || "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "blood-pressure-export.json"; a.click();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  const csvCell = (v) => {
+    const s = v == null ? "" : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const toCsv = (rows) => rows.map((r) => r.map(csvCell).join(",")).join("\r\n");
+  // print an HTML document via a hidden iframe (works offline; no popup blocker)
+  function printHtml(innerHtml, title) {
+    const doc = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title || "Report")}</title>
+      <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #111; margin: 32px; }
+        h1 { font-size: 22px; margin: 0 0 2px; }
+        .sub { color: #555; font-size: 13px; margin: 0 0 18px; }
+        .summary { display: flex; flex-wrap: wrap; gap: 10px 26px; margin: 0 0 20px; padding: 14px 16px; border: 1px solid #ddd; border-radius: 8px; }
+        .summary div { font-size: 13px; }
+        .summary b { display: block; font-size: 18px; }
+        table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+        th, td { border: 1px solid #ccc; padding: 6px 9px; text-align: left; }
+        th { background: #f4f4f4; }
+        tr:nth-child(even) td { background: #fafafa; }
+        .foot { margin-top: 18px; color: #888; font-size: 11px; }
+        @media print { body { margin: 12mm; } }
+      </style></head><body>${innerHtml}
+      <div class="foot">Generated by Gym Tracker on ${esc(new Date().toLocaleString())}. This is a self-reported log, not a medical record.</div>
+      </body></html>`;
+    const ifr = document.createElement("iframe");
+    ifr.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+    document.body.appendChild(ifr);
+    const d = ifr.contentWindow.document;
+    d.open(); d.write(doc); d.close();
+    setTimeout(() => {
+      try { ifr.contentWindow.focus(); ifr.contentWindow.print(); } catch (e) { alert("Couldn't open the print dialog."); }
+      setTimeout(() => ifr.remove(), 1000);
+    }, 350);
+  }
+
+  /* ---------- BP: doctor CSV + printable report ---------- */
+  $("bpCsvBtn").addEventListener("click", () => {
+    if (!bp.length) { alert("No readings to export yet."); return; }
+    const rows = [["Date", "Time", "Systolic (mmHg)", "Diastolic (mmHg)", "Pulse (bpm)", "Category", "Notes"]];
+    [...bp].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : Number(a.id) - Number(b.id))).forEach((e) => {
+      const cat = categorizeBP(e.sys, e.dia); const c = cat ? bpCat(cat) : null;
+      rows.push([e.date || "", e.time ? fmtTime(e.time) : "", e.sys ?? "", e.dia ?? "", e.pulse ?? "", c ? c.label : "", e.notes || ""]);
+    });
+    downloadBlob("blood-pressure-log.csv", toCsv(rows), "text/csv");
+  });
+  $("bpReportBtn").addEventListener("click", () => {
+    if (!bp.length) { alert("No readings to report yet."); return; }
+    const chrono = [...bp].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : Number(a.id) - Number(b.id)));
+    const first = chrono[0], last = chrono[chrono.length - 1];
+    const range = first.date === last.date
+      ? asDate(first.date).toLocaleDateString()
+      : `${asDate(first.date).toLocaleDateString()} – ${asDate(last.date).toLocaleDateString()}`;
+    const avg = (k, arr) => Math.round(arr.reduce((s, e) => s + (Number(e[k]) || 0), 0) / arr.length);
+    const recent = [...chrono].slice(-7);
+    const pulses = chrono.filter((e) => Number(e.pulse));
+    const catCounts = {};
+    chrono.forEach((e) => { const k = categorizeBP(e.sys, e.dia); if (k) catCounts[k] = (catCounts[k] || 0) + 1; });
+    const catLine = BP_CATS.filter((c) => catCounts[c.key]).map((c) => `${c.label}: ${catCounts[c.key]}`).join(" · ") || "—";
+    const rows = chrono.map((e) => {
+      const cat = categorizeBP(e.sys, e.dia); const c = cat ? bpCat(cat) : null;
+      return `<tr><td>${e.date ? esc(asDate(e.date).toLocaleDateString()) : "—"}</td><td>${e.time ? esc(fmtTime(e.time)) : "—"}</td>
+        <td><b>${esc(String(e.sys))}/${esc(String(e.dia))}</b></td><td>${e.pulse ? esc(String(e.pulse)) : "—"}</td>
+        <td>${c ? esc(c.label) : "—"}</td><td>${esc(e.notes || "")}</td></tr>`;
+    }).join("");
+    const html = `
+      <h1>Blood Pressure Report</h1>
+      <p class="sub">${profile.name ? esc(profile.name) + " · " : ""}${chrono.length} readings · ${esc(range)}</p>
+      <div class="summary">
+        <div>Average (all)<b>${avg("sys", chrono)}/${avg("dia", chrono)} mmHg</b></div>
+        <div>Average (last ${recent.length})<b>${avg("sys", recent)}/${avg("dia", recent)} mmHg</b></div>
+        <div>Average pulse<b>${pulses.length ? avg("pulse", pulses) + " bpm" : "—"}</b></div>
+        <div>Most recent<b>${esc(String(last.sys))}/${esc(String(last.dia))} mmHg</b></div>
+        <div>Category breakdown<b style="font-size:12px;font-weight:600">${esc(catLine)}</b></div>
+      </div>
+      <table><thead><tr><th>Date</th><th>Time</th><th>BP (mmHg)</th><th>Pulse</th><th>Category</th><th>Notes</th></tr></thead>
+        <tbody>${rows}</tbody></table>`;
+    printHtml(html, "Blood Pressure Report");
   });
 
   function bpEdit(id) {
@@ -3294,7 +3508,7 @@
     renderShopList();
     renderPantryList();
     renderMealList();
-    renderBW();
+    renderNutWeight();
   }
 
   function renderShopList() {
@@ -3456,14 +3670,26 @@
     if (saveShop()) renderShopList();
   }
 
-  /* quick-add food picker */
-  let foodDraft = []; // [{name, serving, servings, cal, p, c, f}]
+  /* quick-add food picker — custom foods, your recipes, or the built-in list */
+  let foodDraft = []; // [{name, serving, servings, cal, p, c, f, custom?}]
   function fillFoodSelect() {
+    const custom = `<option value="custom">✏️ Custom food (type your own macros)…</option>`;
+    const recipeGroup = nut.recipes.length
+      ? `<optgroup label="Your recipes">` + nut.recipes.map((r) => `<option value="r:${r.id}">${esc(r.name)}</option>`).join("") + `</optgroup>`
+      : "";
     const cats = [...new Set(FOODS.map((x) => x.cat))];
-    $("fFood").innerHTML = cats.map((cat) =>
+    const foodGroups = cats.map((cat) =>
       `<optgroup label="${esc(cat)}">` +
-      FOODS.map((x, i) => (x.cat === cat ? `<option value="${i}">${esc(x.name)} (${esc(x.serving)})</option>` : "")).join("") +
+      FOODS.map((x, i) => (x.cat === cat ? `<option value="f:${i}">${esc(x.name)} (${esc(x.serving)})</option>` : "")).join("") +
       `</optgroup>`).join("");
+    $("fFood").innerHTML = custom + recipeGroup + foodGroups;
+    toggleCustomRow();
+  }
+  // show the custom name+macros inputs (and hide the servings stepper) only when "Custom food" is picked
+  function toggleCustomRow() {
+    const isCustom = $("fFood").value === "custom";
+    $("fCustomRow").style.display = isCustom ? "" : "none";
+    $("fServWrap").style.display = isCustom ? "none" : "";
   }
   function foodRecompute() {
     if (!foodDraft.length) return; // never clobber manual/recipe values when the list is empty
@@ -3479,12 +3705,15 @@
       $("fAdded").innerHTML = `<div class="fb-empty">No foods added yet — pick one above and hit “+ Add food”. Add as many as you like.</div>`;
       return;
     }
-    const rows = foodDraft.map((x, i) => `
+    const rows = foodDraft.map((x, i) => {
+      const qtyPrefix = x.serving ? `${x.servings} × ${esc(x.serving)} · ` : (x.servings !== 1 ? `${x.servings} × · ` : "");
+      return `
       <div class="shop-row">
-        <span class="sh-name">${esc(x.name)}</span>
-        <span class="sh-qty">${x.servings} × ${esc(x.serving)} · ${Math.round(x.cal * x.servings)} cal · ${Math.round(x.p * x.servings)}g P</span>
+        <span class="sh-name">${esc(x.name)}${x.custom ? ` <span class="fb-tag">custom</span>` : ""}</span>
+        <span class="sh-qty">${qtyPrefix}${Math.round(x.cal * x.servings)} cal · ${Math.round(x.p * x.servings)}g P</span>
         <button type="button" class="btn ghost" data-fdel="${i}" title="Remove">✕</button>
-      </div>`).join("");
+      </div>`;
+    }).join("");
     const t = (k) => Math.round(foodDraft.reduce((s, x) => s + x[k] * x.servings, 0));
     $("fAdded").innerHTML = rows + `
       <div class="food-total">
@@ -3492,12 +3721,30 @@
         <b>${t("cal").toLocaleString()} cal · ${t("p")}g P · ${t("c")}g C · ${t("f")}g F</b>
       </div>`;
   }
+  $("fFood").addEventListener("change", toggleCustomRow);
   $("fAddBtn").addEventListener("click", () => {
-    const food = FOODS[Number($("fFood").value)];
-    if (!food) return;
-    const servings = Number($("fServ").value) || 1;
-    foodDraft.push({ name: food.name, serving: food.serving, servings, cal: food.cal, p: food.p, c: food.c, f: food.f });
-    $("fServ").value = "1";
+    const val = $("fFood").value;
+    if (val === "custom") {
+      const name = $("fcName").value.trim();
+      const cal = Number($("fcCal").value) || 0;
+      const p = Number($("fcP").value) || 0, c = Number($("fcC").value) || 0, f = Number($("fcF").value) || 0;
+      if (!name) { $("fcName").focus(); return; }
+      if (!cal && !p && !c && !f) { $("fcCal").focus(); return; } // need at least one macro
+      foodDraft.push({ name, serving: "", servings: 1, cal, p, c, f, custom: true });
+      $("fcName").value = ""; $("fcCal").value = ""; $("fcP").value = ""; $("fcC").value = ""; $("fcF").value = "";
+    } else if (val.startsWith("r:")) {
+      const r = nut.recipes.find((x) => x.id === val.slice(2));
+      if (!r) return;
+      const servings = Number($("fServ").value) || 1;
+      foodDraft.push({ name: r.name, serving: "recipe", servings, cal: Number(r.cal) || 0, p: Number(r.prot) || 0, c: Number(r.carb) || 0, f: Number(r.fat) || 0 });
+      $("fServ").value = "1";
+    } else {
+      const food = FOODS[Number(val.replace(/^f:/, ""))];
+      if (!food) return;
+      const servings = Number($("fServ").value) || 1;
+      foodDraft.push({ name: food.name, serving: food.serving, servings, cal: food.cal, p: food.p, c: food.c, f: food.f });
+      $("fServ").value = "1";
+    }
     renderFoodDraft();
     foodRecompute();
   });
@@ -3513,18 +3760,6 @@
   /* meal modal */
   function openMealModal() { $("mealOverlay").classList.add("open"); }
   function closeMealModal() { $("mealOverlay").classList.remove("open"); }
-  function fillRecipeSelect(selectedId) {
-    $("mRecipe").innerHTML = `<option value="">— manual entry —</option>` +
-      nut.recipes.map((r) => `<option value="${r.id}" ${r.id === selectedId ? "selected" : ""}>${esc(r.name)}</option>`).join("");
-  }
-  function applyRecipeMacros() {
-    const r = nut.recipes.find((x) => x.id === $("mRecipe").value);
-    if (!r) return;
-    const sv = Number($("mServ").value) || 1;
-    if (!$("mName").value.trim() || $("mName").dataset.auto === "1") { $("mName").value = r.name; $("mName").dataset.auto = "1"; }
-    const mul = (v) => (v === "" || v == null ? "" : Math.round(Number(v) * sv * 10) / 10);
-    $("mCal").value = mul(r.cal); $("mProt").value = mul(r.prot); $("mCarb").value = mul(r.carb); $("mFat").value = mul(r.fat);
-  }
   function setMealSlot(slot) {
     $("mSlot").value = slot || "";
     document.querySelectorAll("#mSlotToggle .mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.slot === slot));
@@ -3534,10 +3769,11 @@
   );
   function mealResetForm() {
     $("mealForm").reset(); $("mEditId").value = "";
-    $("mDate").value = dayKey(new Date()); $("mServ").value = "1"; $("fServ").value = "1";
+    $("mDate").value = dayKey(new Date()); $("fServ").value = "1";
     $("mName").dataset.auto = "";
     setMealSlot(defaultSlot());
-    fillRecipeSelect("");
+    fillFoodSelect(); // refresh builder list (custom + latest recipes + foods); resets to Custom + hides custom row
+    $("fcName").value = ""; $("fcCal").value = ""; $("fcP").value = ""; $("fcC").value = ""; $("fcF").value = "";
     foodDraft = [];
     renderFoodDraft();
     $("mealFormTitle").textContent = "Log a Meal"; $("mSubmitBtn").textContent = "Log Meal";
@@ -3554,15 +3790,13 @@
   $("mealCloseBtn").addEventListener("click", () => { mealResetForm(); closeMealModal(); });
   $("mealCancelBtn").addEventListener("click", () => { mealResetForm(); closeMealModal(); });
   $("mealOverlay").addEventListener("click", (e) => { if (e.target === $("mealOverlay")) { mealResetForm(); closeMealModal(); } });
-  $("mRecipe").addEventListener("change", applyRecipeMacros);
-  $("mServ").addEventListener("input", () => { if ($("mRecipe").value) applyRecipeMacros(); });
   $("mName").addEventListener("input", () => { $("mName").dataset.auto = ""; });
   $("mealForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const m = {
       id: $("mEditId").value || String(Date.now()),
-      date: $("mDate").value, name: $("mName").value.trim(), recipeId: $("mRecipe").value, slot: $("mSlot").value,
-      servings: $("mServ").value, cal: $("mCal").value, prot: $("mProt").value, carb: $("mCarb").value, fat: $("mFat").value,
+      date: $("mDate").value, name: $("mName").value.trim(), slot: $("mSlot").value,
+      cal: $("mCal").value, prot: $("mProt").value, carb: $("mCarb").value, fat: $("mFat").value,
     };
     const prevMeals = nut.meals;
     nut.meals = $("mEditId").value ? nut.meals.map((x) => (x.id === m.id ? m : x)) : nut.meals.concat([m]);
@@ -3571,16 +3805,20 @@
   });
   function recipeLog(id) {
     mealResetForm();
-    fillRecipeSelect(id);
-    applyRecipeMacros();
+    const r = nut.recipes.find((x) => x.id === id);
+    if (r) {
+      foodDraft.push({ name: r.name, serving: "recipe", servings: 1, cal: Number(r.cal) || 0, p: Number(r.prot) || 0, c: Number(r.carb) || 0, f: Number(r.fat) || 0 });
+      renderFoodDraft();
+      foodRecompute();
+    }
     openMealModal();
   }
   function mealEdit(id) {
     const m = nut.meals.find((x) => x.id === id);
     if (!m) return;
     mealResetForm();
-    $("mEditId").value = m.id; fillRecipeSelect(m.recipeId);
-    $("mName").value = m.name; $("mDate").value = m.date; $("mServ").value = m.servings;
+    $("mEditId").value = m.id;
+    $("mName").value = m.name; $("mDate").value = m.date;
     setMealSlot(m.slot || "");
     $("mCal").value = m.cal; $("mProt").value = m.prot; $("mCarb").value = m.carb; $("mFat").value = m.fat;
     $("mealFormTitle").textContent = "Edit Meal"; $("mSubmitBtn").textContent = "Save Changes";
@@ -3684,45 +3922,136 @@
     ) + `<p class="plan-note" style="margin:8px 0 0;">${esc(pick)}: top set ${last.maxW} ${esc(profile.unit)} · last volume ${fmt(last.vol)} ${esc(profile.unit)} · ${delta >= 0 ? "▲ up" : "▼ down"} ${Math.abs(delta)} ${esc(profile.unit)} across ${data.length} sessions.</p>`;
   }
 
-  /* ---------- weigh-ins ---------- */
-  $("bwForm").addEventListener("submit", (e) => {
+  /* ---------- compact weight widget on the Nutrition page (tied to the Weight page) ---------- */
+  function renderNutWeight() {
+    if (!$("nutWeight")) return;
+    if (!weighins.length) {
+      $("nutWeight").innerHTML = `<div class="empty" style="padding:14px 4px;">No weigh-ins yet — log one on the <b>Weight</b> page.</div>`;
+      return;
+    }
+    const asc = sortedWeighins();
+    const last = asc[asc.length - 1], prev = asc.length > 1 ? asc[asc.length - 2] : null;
+    const delta = prev ? Math.round((last.weight - prev.weight) * 10) / 10 : null;
+    const dHtml = delta == null ? "" :
+      `<span class="nutw-delta" style="color:${delta === 0 ? "var(--muted)" : delta > 0 ? "var(--m-rpe)" : "var(--m-prot)"}">${delta === 0 ? "±0" : (delta > 0 ? "▲ +" : "▼ ") + Math.abs(delta)} ${esc(profile.unit)}</span>`;
+    const tod = TOD[last.tod];
+    $("nutWeight").innerHTML = `
+      <div class="nutw-row">
+        <div>
+          <div class="nutw-num">${last.weight} <span>${esc(profile.unit)}</span></div>
+          <div class="nutw-sub">latest · ${esc(asDate(last.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}${tod ? " · " + tod.icon + " " + tod.label : ""}</div>
+        </div>
+        ${dHtml}
+      </div>`;
+  }
+
+  /* ---------- Weight page (full log tracker; shares the weighins store) ---------- */
+  // time-of-day for weigh-ins
+  const TOD = {
+    morning: { label: "Morning", icon: "🌅", order: 0 },
+    midday:  { label: "Midday",  icon: "☀️", order: 1 },
+    night:   { label: "Night",   icon: "🌙", order: 2 },
+  };
+  const todOrder = (w) => (TOD[w && w.tod] ? TOD[w.tod].order : 1);
+  const sortedWeighins = () => [...weighins].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : todOrder(a) - todOrder(b) || Number(a.id) - Number(b.id)));
+  function defaultTod() { const h = new Date().getHours(); return h < 11 ? "morning" : h < 17 ? "midday" : "night"; }
+  const latestWeighin = () => { const s = sortedWeighins(); return s.length ? s[s.length - 1] : null; };
+  function syncBwFromWeighins() { // keep protein-target bodyweight pinned to the most recent weigh-in
+    const lw = latestWeighin();
+    if (!lw) return;
+    const prev = profile.bw;
+    profile.bw = String(lw.weight);
+    if (!saveProfile(profile)) profile.bw = prev;
+  }
+  function setWtTod(tod) {
+    $("wtTod").value = tod || "";
+    document.querySelectorAll("#wtTodToggle .mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.tod === tod));
+  }
+  document.querySelectorAll("#wtTodToggle .mode-btn").forEach((b) =>
+    b.addEventListener("click", () => setWtTod(b.dataset.tod))
+  );
+  $("wtForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    const wgt = Number($("bwInput").value);
-    if (!wgt || wgt <= 0) {
-      $("bwInput").setCustomValidity("Enter a weight greater than 0");
-      $("bwInput").reportValidity();
-      $("bwInput").setCustomValidity("");
-      return;
-    }
-    const today = dayKey(new Date());
-    const existing = weighins.find((x) => x.date === today);
+    const wgt = Number($("wtInput").value);
+    if (!wgt || wgt <= 0) { $("wtInput").setCustomValidity("Enter a weight greater than 0"); $("wtInput").reportValidity(); $("wtInput").setCustomValidity(""); return; }
+    const date = $("wtDate").value || dayKey(new Date());
+    const tod = $("wtTod").value || defaultTod();
+    const existing = weighins.find((x) => x.date === date && (x.tod || "") === tod); // same date + same time-of-day updates
     const prevWeight = existing ? existing.weight : null;
-    if (existing) existing.weight = wgt; else weighins.push({ id: String(Date.now()), date: today, weight: wgt });
-    if (!saveWeighins()) { // roll back so memory matches storage
-      if (existing) existing.weight = prevWeight; else weighins.pop();
-      return;
-    }
-    const prevBw = profile.bw;
-    profile.bw = String(wgt); // keep the protein target synced to the latest weigh-in
-    if (!saveProfile(profile)) profile.bw = prevBw;
-    $("bwForm").reset();
+    if (existing) existing.weight = wgt; else weighins.push({ id: String(Date.now()), date, weight: wgt, tod });
+    if (!saveWeighins()) { if (existing) existing.weight = prevWeight; else weighins.pop(); return; }
+    syncBwFromWeighins();
+    $("wtForm").reset();
+    $("wtDate").value = dayKey(new Date());
+    setWtTod(defaultTod());
     render();
   });
-  function renderBW() {
-    if (!$("bwChart")) return;
-    if (!weighins.length) { $("bwChart").innerHTML = `<div class="empty">Log your first weigh-in ⚖️</div>`; $("bwNote").textContent = "Weigh-ins also update the bodyweight behind your protein target."; return; }
-    const sorted = [...weighins].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-30);
-    const first = sorted[0], last = sorted[sorted.length - 1];
-    if (sorted.length < 2) {
-      $("bwChart").innerHTML = `<div class="empty">Latest: <b>${last.weight} ${esc(profile.unit)}</b> — log again tomorrow to start the trend.</div>`;
+  function wtDel(id) {
+    if (!confirm("Delete this weigh-in?")) return;
+    const prev = weighins;
+    weighins = weighins.filter((x) => x.id !== id);
+    if (!saveWeighins()) { weighins = prev; return; }
+    syncBwFromWeighins();
+    render();
+  }
+  $("wtCsvBtn").addEventListener("click", () => {
+    if (!weighins.length) { alert("No weigh-ins to export yet."); return; }
+    const rows = [["Date", "Time of day", `Weight (${profile.unit})`]];
+    sortedWeighins().forEach((w) => rows.push([w.date, TOD[w.tod] ? TOD[w.tod].label : "", w.weight]));
+    downloadBlob("weight-log.csv", toCsv(rows), "text/csv");
+  });
+  function renderWeight() {
+    if (!$("wtStats")) return;
+    const u = esc(profile.unit);
+    if (!weighins.length) {
+      $("wtStats").innerHTML = "";
+      $("wtChart").innerHTML = `<div class="empty">Log your first weigh-in ⚖️</div>`;
+      $("wtNote").textContent = "";
+      $("wtList").innerHTML = `<div class="empty">No weigh-ins yet — log one on the right.</div>`;
+      return;
+    }
+    const asc = sortedWeighins();
+    const first = asc[0], last = asc[asc.length - 1];
+    const weights = asc.map((x) => x.weight);
+    const lo = Math.min(...weights), hi = Math.max(...weights);
+    const change = Math.round((last.weight - first.weight) * 10) / 10;
+    const changeStr = change === 0 ? "0" : (change > 0 ? "+" : "") + change;
+    const changeColor = change === 0 ? "var(--muted)" : (change > 0 ? "var(--m-rpe)" : "var(--m-prot)");
+    $("wtStats").innerHTML = `
+      <div class="stat" style="--c:var(--c1)"><div class="num" style="color:var(--text)">${last.weight}</div><div class="lbl">Current (${u})</div></div>
+      <div class="stat" style="--c:${changeColor}"><div class="num" style="color:${changeColor}">${changeStr}</div><div class="lbl">Change (${u})</div></div>
+      <div class="stat" style="--c:var(--c3)"><div class="num">${lo}</div><div class="lbl">Lowest</div></div>
+      <div class="stat" style="--c:var(--c4)"><div class="num">${weighins.length}</div><div class="lbl">Weigh-ins</div></div>`;
+    // chart (last 30)
+    const recent = asc.slice(-30);
+    if (recent.length < 2) {
+      $("wtChart").innerHTML = `<div class="empty">Latest: <b>${last.weight} ${u}</b> — log again to start the trend line.</div>`;
     } else {
-      $("bwChart").innerHTML = svgLines(
-        [{ name: "Bodyweight", color: PALETTE[3], data: sorted.map((x) => x.weight) }],
-        sorted.map((x) => `${asDate(x.date).getMonth() + 1}/${asDate(x.date).getDate()}`), []
+      $("wtChart").innerHTML = svgLines(
+        [{ name: "Weight", color: PALETTE[3], data: recent.map((x) => x.weight) }],
+        recent.map((x) => `${asDate(x.date).getMonth() + 1}/${asDate(x.date).getDate()}`), []
       );
     }
-    const d = Math.round((last.weight - first.weight) * 10) / 10;
-    $("bwNote").textContent = `Latest ${last.weight} ${profile.unit} · ${d === 0 ? "flat" : (d > 0 ? "▲ +" : "▼ ") + d + " " + profile.unit} over ${sorted.length} weigh-ins. Protein target follows your latest weight.`;
+    $("wtNote").textContent = `Range ${lo}–${hi} ${profile.unit} · ${change === 0 ? "flat" : (change > 0 ? "▲ +" : "▼ ") + Math.abs(change)} ${profile.unit} since ${asDate(first.date).toLocaleDateString()}.`;
+    // history list, newest first, with delta vs the previous (chronological) entry
+    const idxByDate = {}; asc.forEach((x, i) => (idxByDate[x.id] = i));
+    $("wtList").innerHTML = [...asc].reverse().map((x) => {
+      const i = idxByDate[x.id];
+      const prev = i > 0 ? asc[i - 1] : null;
+      const delta = prev ? Math.round((x.weight - prev.weight) * 10) / 10 : null;
+      const deltaHtml = delta == null ? `<span class="wt-delta" style="color:var(--faint)">first</span>`
+        : `<span class="wt-delta" style="color:${delta === 0 ? "var(--muted)" : delta > 0 ? "var(--m-rpe)" : "var(--m-prot)"}">${delta === 0 ? "±0" : (delta > 0 ? "▲ +" : "▼ ") + Math.abs(delta)}</span>`;
+      const t = TOD[x.tod];
+      const todHtml = t ? `<span class="wt-tod" title="${t.label}">${t.icon} ${t.label}</span>` : `<span class="wt-tod"></span>`;
+      return `
+        <div class="wt-row">
+          <span class="wt-date">${esc(asDate(x.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }))}</span>
+          ${todHtml}
+          <span class="wt-wt">${x.weight} <span style="font-size:11px;color:var(--muted)">${u}</span></span>
+          ${deltaHtml}
+          <button class="btn ghost" title="Delete" onclick="wtDel('${x.id}')">✕</button>
+        </div>`;
+    }).join("");
   }
 
   /* ---------- daily habits (water & sleep) ---------- */
@@ -4000,9 +4329,19 @@
       const snap = JSON.parse(localStorage.getItem(SNAPKEY) || "null");
       $("snapInfo").textContent = snap ? `Auto-snapshot on file: ${snap.date}${snap.prev ? ` (previous: ${snap.prev.date})` : ""}.` : "No auto-snapshot yet — one is taken each day you open the app.";
     } catch (e) { $("snapInfo").textContent = ""; }
+    // storage health: origin (file vs web) + whether the browser marked it persistent
+    (function () {
+      const where = location.protocol === "file:" ? "⚠️ Local file (file://) — this data is separate from the web version and evicted first. Use the web link instead." : `Web app (${location.hostname}) — data is tied to this address.`;
+      const el = $("storageInfo");
+      el.textContent = where;
+      if (navigator.storage && navigator.storage.persisted) {
+        navigator.storage.persisted().then((p) => { el.textContent = where + " " + (p ? "Persistent storage: ON ✓ (browser won't auto-delete it)." : "Persistent storage: not granted yet."); }).catch(() => {});
+      }
+    })();
     // navigate to the full-page Settings view
     document.querySelectorAll(".nav button").forEach((x) => x.classList.remove("active"));
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    closeNavMenus();
     $("page-settings").classList.add("active");
     $("profileBtn").classList.add("active");
     window.scrollTo({ top: 0 });
@@ -4053,6 +4392,9 @@
   $("date").max = dayKey(new Date());
   $("bpDate").value = dayKey(new Date());
   $("bpDate").max = dayKey(new Date());
+  $("wtDate").value = dayKey(new Date());
+  $("wtDate").max = dayKey(new Date());
+  setWtTod(defaultTod());
   $("bpFilterCat").innerHTML = `<option value="">All categories</option>` + BP_CATS.map((c) => `<option value="${c.key}">${esc(c.label)}</option>`).join("");
   $("stStart").value = dayKey(new Date());
   $("stStart").max = dayKey(new Date());
@@ -4086,6 +4428,23 @@
     if (changed) saveHabits();
   })();
   takeSnapshot(); // daily auto-backup of all data
+
+  // ---- durable storage: ask the browser NOT to evict our data, and warn when running from a file:// (separate, fragile storage) ----
+  const isFileOrigin = location.protocol === "file:";
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persisted().then((already) => { if (!already) navigator.storage.persist().catch(() => {}); }).catch(() => {});
+  }
+  (function fileWarn() {
+    if (!isFileOrigin) return;
+    const KEY = "gymTracker.fileWarnDismissed.v1";
+    try { if (localStorage.getItem(KEY)) return; } catch (e) {}
+    const bar = document.createElement("div");
+    bar.className = "file-warn";
+    bar.innerHTML = `<span>⚠️ You opened this as a local file. Data saved here is <b>separate</b> from the web-app version and is the kind browsers delete first. For reliable saving, open the app from its web link and use only that. </span><button class="btn mini" id="fileWarnX">Got it</button>`;
+    document.body.insertBefore(bar, document.body.firstChild);
+    $("fileWarnX").addEventListener("click", () => { try { localStorage.setItem(KEY, "1"); } catch (e) {} bar.remove(); });
+  })();
+
   // PWA: register the service worker only when served over http(s) — double-clicking the file keeps working as before
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => reg.update()).catch(() => {});
