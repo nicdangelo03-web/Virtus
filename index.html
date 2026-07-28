@@ -554,24 +554,94 @@
   .accent-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; }
   .accent-dot.active { border-color: var(--text); }
 
+  /* ===== "Today" nutrition hero (calorie ring + macro rings) ===== */
+  .today-hero { text-align: center; }
+  .th-main { display: flex; align-items: center; justify-content: space-around; gap: 8px; margin: 4px 0 14px; }
+  .th-side { min-width: 74px; }
+  .th-side .n { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .th-side .l { font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--faint); margin-top: 2px; }
+  .th-ring { position: relative; width: 132px; height: 132px; flex-shrink: 0; }
+  .th-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .th-ring .ring-bg { stroke: var(--panel-2); }
+  .th-ring .ring-fg { stroke: var(--accent-2); transition: stroke-dashoffset .5s ease; }
+  .th-ring .ring-fg.over { stroke: var(--danger); }
+  .th-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .th-center .big { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .th-center .cap { font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--faint); margin-top: 3px; }
+  .th-macros { display: flex; justify-content: space-around; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .th-macro { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+  .th-mring { position: relative; width: 52px; height: 52px; }
+  .th-mring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .th-mring .pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; }
+  .th-macro .mg { font-size: 12px; color: var(--muted); }
+  .th-macro .mg b { color: var(--text); }
+  .th-macro .ml { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--faint); }
+  /* meal slot quick rows */
+  .slot-rows { margin-top: 4px; }
+  .slot-row { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--border); }
+  .slot-row:last-child { border-bottom: none; }
+  .slot-row .s-icon { width: 38px; height: 38px; border-radius: 50%; background: var(--panel-2); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .slot-row .s-info { flex: 1; text-align: left; min-width: 0; }
+  .slot-row .s-name { font-weight: 600; font-size: 13.5px; }
+  .slot-row .s-cal { font-size: 12px; color: var(--muted); }
+  .slot-add { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--accent); color: #fff; font-size: 19px; line-height: 1; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .slot-add:active { transform: scale(0.92); }
+
+  /* ===== Mobile bottom tab bar ===== */
+  .tabbar { display: none; }
+  .more-sheet { display: none; position: fixed; inset: 0; background: rgba(5,7,10,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 240; }
+  .more-sheet.open { display: block; }
+  .more-panel { position: absolute; left: 0; right: 0; bottom: 0; background: var(--solid-card); border-top: 1px solid var(--border-strong); border-radius: 18px 18px 0 0; padding: 14px 14px calc(18px + env(safe-area-inset-bottom, 0px)); animation: sheetUp .18s ease; }
+  @keyframes sheetUp { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .more-panel h4 { margin: 0 0 10px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--faint); }
+  .more-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .more-grid button { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 13px 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 64px; }
+  .more-grid button .mi { font-size: 19px; }
+  .more-grid button.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
   @media (max-width: 760px) {
+    html, body { overflow-x: hidden; }
     .grid { grid-template-columns: 1fr; }
     .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
     .stat { padding: 11px 12px; }
     .stat .num { font-size: 21px; }
     .log-layout { grid-template-columns: 1fr; }
     .quote-box { text-align: left; max-width: none; }
-    .wrap { padding: 14px 12px calc(56px + env(safe-area-inset-bottom, 0px)); }
+    .wrap { padding: 14px 12px calc(84px + env(safe-area-inset-bottom, 0px)); }
     .dash-grid { gap: 10px; }
     .dash-grid > .chart-card { flex-basis: 100%; }
     .card, .chart-card { padding: 13px; margin-bottom: 10px; }
 
-    /* topbar: brand row + horizontally scrollable nav (kept below the notch) */
-    .topbar { flex-wrap: wrap; height: auto; padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; row-gap: 4px; }
+    /* topbar: brand + gear only — navigation moves to the bottom tab bar */
+    .topbar { height: calc(48px + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 14px 0; }
     .brand { margin-right: auto; }
-    .nav { order: 3; width: 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
-    .nav::-webkit-scrollbar { display: none; }
-    .nav button { padding: 7px 10px; letter-spacing: 1.2px; flex-shrink: 0; }
+    .nav { display: none; }
+
+    /* bottom tab bar (iOS style) */
+    .tabbar {
+      display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 220;
+      background: color-mix(in srgb, var(--solid-card) 88%, transparent);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    }
+    .tabbar button {
+      flex: 1; background: none; border: none; cursor: pointer; color: var(--faint);
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 4px 0; min-height: 48px; border-radius: 10px;
+    }
+    .tabbar button .ti { font-size: 20px; line-height: 1.2; }
+    .tabbar button .tl { font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+    .tabbar button.active { color: var(--accent); }
+
+    /* touch usability: 44px targets, 16px inputs (stops iOS zoom-on-focus) */
+    .btn { padding: 11px 14px; font-size: 13.5px; min-height: 44px; }
+    .btn.mini { min-height: 38px; padding: 8px 12px; }
+    .btn.ghost { min-width: 38px; min-height: 38px; }
+    .icon-btn { width: 40px; height: 40px; }
+    input, select, textarea { font-size: 16px !important; min-height: 42px; }
+    input[type="checkbox"] { min-height: 0; width: 20px; height: 20px; }
+    .th-ring { width: 120px; height: 120px; }
 
     .page-head { flex-direction: column; align-items: stretch; }
     .page-head .btn, .page-head .icon-btn { align-self: flex-start; }
@@ -831,6 +901,13 @@
         <p class="page-sub" style="margin-bottom:0;">Log meals and track calories &amp; protein against your targets. Recipes &amp; shopping live under <b>Nutrition ▸ Recipes &amp; Shopping</b>.</p>
       </div>
       <button class="btn" id="openMealBtn">+ Log Meal</button>
+    </div>
+
+    <div class="card today-hero" id="todayHero"></div>
+
+    <div class="card">
+      <h2 class="section">Meals Today</h2>
+      <div class="slot-rows" id="slotRows"></div>
     </div>
 
     <div class="stats" id="nutStats"></div>
@@ -1421,6 +1498,28 @@
   </div>
 </div>
 
+<!-- mobile bottom tab bar -->
+<nav class="tabbar" id="tabbar">
+  <button data-tab="dashboard" class="active"><span class="ti">⌂</span><span class="tl">Home</span></button>
+  <button data-tab="log"><span class="ti">🏋</span><span class="tl">Workouts</span></button>
+  <button data-tab="nutrition"><span class="ti">🍽</span><span class="tl">Nutrition</span></button>
+  <button data-tab="weight"><span class="ti">⚖︎</span><span class="tl">Weight</span></button>
+  <button data-tab="__more" id="moreTabBtn"><span class="ti">⋯</span><span class="tl">More</span></button>
+</nav>
+
+<div class="more-sheet" id="moreSheet">
+  <div class="more-panel">
+    <h4>More</h4>
+    <div class="more-grid">
+      <button data-page="library"><span class="mi">🧾</span>Recipes</button>
+      <button data-page="bp"><span class="mi">🫀</span>Blood Pressure</button>
+      <button data-page="habits"><span class="mi">✅</span>Habits</button>
+      <button data-page="streaks"><span class="mi">🔥</span>Streaks</button>
+      <button data-page="plans"><span class="mi">🗓</span>Plans</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const KEY = "gymTracker.v1";
   const PKEY = "gymTracker.profile.v1";
@@ -1892,6 +1991,12 @@
       if (grp) { const gb = grp.querySelector(".nav-grp"); if (gb) gb.classList.add("active"); }
     }
     closeNavMenus();
+    // sync mobile tab bar (More lights up for pages living in the sheet)
+    const morePages = ["library", "bp", "habits", "streaks", "plans"];
+    document.querySelectorAll("#tabbar button").forEach((t) =>
+      t.classList.toggle("active", t.dataset.tab === pageId || (t.dataset.tab === "__more" && morePages.includes(pageId)))
+    );
+    document.querySelectorAll("#moreSheet .more-grid button").forEach((t) => t.classList.toggle("active", t.dataset.page === pageId));
     window.scrollTo({ top: 0 });
   }
   document.querySelectorAll(".nav button[data-page]").forEach((b) =>
@@ -1902,6 +2007,19 @@
   );
   document.addEventListener("click", (e) => { if (!e.target.closest(".nav-group")) closeNavMenus(); });
   window.addEventListener("resize", closeNavMenus);
+
+  /* ---------- mobile tab bar + "More" sheet ---------- */
+  document.querySelectorAll("#tabbar button").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (b.dataset.tab === "__more") { $("moreSheet").classList.toggle("open"); return; }
+      $("moreSheet").classList.remove("open");
+      showPage(b.dataset.tab);
+    })
+  );
+  document.querySelectorAll("#moreSheet .more-grid button").forEach((b) =>
+    b.addEventListener("click", () => { $("moreSheet").classList.remove("open"); showPage(b.dataset.page); })
+  );
+  $("moreSheet").addEventListener("click", (e) => { if (e.target === $("moreSheet")) $("moreSheet").classList.remove("open"); });
 
   /* ---------- dashboard chart-mode toggle ---------- */
   document.querySelectorAll("#dashToggle .seg").forEach((b) =>
@@ -3461,11 +3579,72 @@
       </div>`;
   }
 
+  /* "Today" hero — calorie ring + macro rings (Vesper-style) */
+  function ringSvg(pct, size, stroke, color, over) {
+    const r = (size - stroke) / 2, c = 2 * Math.PI * r;
+    const off = c * (1 - Math.max(0, Math.min(1, pct)));
+    return `<svg viewBox="0 0 ${size} ${size}">
+      <circle class="ring-bg" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}" stroke="var(--panel-2)" />
+      <circle class="ring-fg${over ? " over" : ""}" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}"
+        stroke="${over ? "var(--danger)" : color}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" /></svg>`;
+  }
+  function renderTodayHero() {
+    const t = nutTotalsOn(dayKey(new Date()));
+    const calTarget = Number(profile.cal) || null;
+    const protTarget = proteinTarget();
+    const eaten = Math.round(t.cal);
+    const over = calTarget ? eaten > calTarget : false;
+    const remaining = calTarget ? calTarget - eaten : null;
+    const center = calTarget
+      ? `<div class="big">${Math.abs(remaining).toLocaleString()}</div><div class="cap">${remaining >= 0 ? "Remaining" : "Over"}</div>`
+      : `<div class="big">${eaten.toLocaleString()}</div><div class="cap">Eaten</div>`;
+    // macro rings: share of today's calories (P/C 4 kcal per g, F 9)
+    const kcal = { p: t.prot * 4, c: t.carb * 4, f: t.fat * 9 };
+    const tot = kcal.p + kcal.c + kcal.f;
+    const macro = (label, grams, share, color, extra) => `
+      <div class="th-macro">
+        <div class="th-mring">${ringSvg(share, 52, 5, color)}<div class="pct" style="color:${color}">${tot ? Math.round(share * 100) + "%" : "–"}</div></div>
+        <div class="mg"><b>${Math.round(grams)}</b>${extra || " g"}</div>
+        <div class="ml">${label}</div>
+      </div>`;
+    $("todayHero").innerHTML = `
+      <div class="th-main">
+        <div class="th-side"><div class="n">${eaten.toLocaleString()}</div><div class="l">Eaten</div></div>
+        <div class="th-ring">${ringSvg(calTarget ? eaten / calTarget : 0, 132, 10, "var(--accent-2)", over)}<div class="th-center">${center}</div></div>
+        <div class="th-side"><div class="n">${calTarget ? calTarget.toLocaleString() : "—"}</div><div class="l">Goal</div></div>
+      </div>
+      <div class="th-macros">
+        ${macro("Carbs", t.carb, tot ? kcal.c / tot : 0, "var(--m-carb)")}
+        ${macro("Protein", t.prot, tot ? kcal.p / tot : 0, "var(--m-prot)", protTarget ? ` / ${protTarget} g` : " g")}
+        ${macro("Fats", t.fat, tot ? kcal.f / tot : 0, "var(--m-fat)")}
+      </div>
+      ${!calTarget ? `<div class="plan-note" style="margin:12px 0 0;">Set a daily calorie goal in ⚙️ Settings to activate the ring.</div>` : ""}`;
+  }
+  function renderSlotRows() {
+    const list = mealsOn(dayKey(new Date()));
+    const calIn = (slot) => Math.round(list.filter((m) => m.slot === slot).reduce((s, m) => s + mealMacro(m, "cal"), 0));
+    $("slotRows").innerHTML = Object.keys(SLOT_META).map((k) => {
+      const meta = SLOT_META[k], cal = calIn(k), n = list.filter((m) => m.slot === k).length;
+      return `
+      <div class="slot-row">
+        <div class="s-icon">${meta.icon}</div>
+        <div class="s-info">
+          <div class="s-name">${meta.label}</div>
+          <div class="s-cal">${n ? `${cal.toLocaleString()} cal · ${n} item${n > 1 ? "s" : ""}` : "Nothing logged yet"}</div>
+        </div>
+        <button class="slot-add" title="Log ${meta.label}" onclick="mealQuickAdd('${k}')">+</button>
+      </div>`;
+    }).join("");
+  }
+  function mealQuickAdd(slot) { mealResetForm(); setMealSlot(slot); openMealModal(); }
+
   function renderNutrition() {
     const today = dayKey(new Date());
     const tProt = nutTotalsOn(today).prot;
     const target = proteinTarget();
 
+    renderTodayHero();
+    renderSlotRows();
     $("nutStats").innerHTML = nutStatsHtml();
 
     if (target) {
