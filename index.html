@@ -589,6 +589,24 @@
   .slot-add { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--accent); color: #fff; font-size: 19px; line-height: 1; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .slot-add:active { transform: scale(0.92); }
 
+  /* ===== Workout logging helpers ===== */
+  .rest-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 7px; background: var(--solid-card); border: 1px solid var(--border); border-radius: 11px; padding: 8px 10px; margin-bottom: 14px; }
+  .rest-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--faint); }
+  .rest-display { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--accent); margin-left: auto; min-width: 46px; text-align: right; }
+  .rest-display.done { color: var(--accent-2); animation: restPulse .5s ease 4; }
+  @keyframes restPulse { 50% { opacity: .25; } }
+  .ex-last { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); background: var(--panel-2); border-radius: 8px; padding: 6px 9px; margin: 6px 0 8px; }
+  .ex-last b { color: var(--text); }
+  .ex-last .use-last { margin-left: auto; }
+  .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 300; background: var(--solid-card); border: 1px solid var(--accent); color: var(--text); border-radius: 12px; padding: 12px 18px; font-size: 13.5px; font-weight: 600; box-shadow: 0 12px 40px rgba(0,0,0,.5); max-width: min(92vw, 480px); text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+  .muscle-row { display: grid; grid-template-columns: 92px 1fr 44px; align-items: center; gap: 10px; padding: 5px 0; }
+  .muscle-row .mr-name { font-size: 12.5px; font-weight: 600; }
+  .muscle-row .mr-count { font-family: var(--font-mono); font-size: 12px; text-align: right; color: var(--muted); }
+  .muscle-track { position: relative; height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
+  .muscle-track .mt-band { position: absolute; left: 48%; width: 32%; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent-2) 14%, transparent); }
+  .muscle-track .mt-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+
   /* ===== Mobile bottom tab bar ===== */
   .tabbar { display: none; }
   .more-sheet { display: none; position: fixed; inset: 0; background: rgba(5,7,10,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 240; }
@@ -777,6 +795,12 @@
     </div>
 
     <div class="card">
+      <h2 class="section">This Week — Sets per Muscle</h2>
+      <p class="plan-note" style="margin:0 0 10px;">Your plan's anchor: 12–20 hard sets per muscle per week (green band). Counted from this week's logged exercises.</p>
+      <div id="muscleWeek"></div>
+    </div>
+
+    <div class="card">
       <h2 class="section">History</h2>
       <div class="filters">
         <input id="search" placeholder="Search by name, notes, or exercise…" />
@@ -915,14 +939,6 @@
     </div>
 
     <div class="stats" id="nutStats"></div>
-
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
-        <span id="protLabel">Protein today</span><span id="protCount"></span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" id="protBar" style="width:0%"></div></div>
-      <div class="plan-note" id="protHint" style="margin:8px 0 0;"></div>
-    </div>
 
     <div class="card">
       <h2 class="section">Meal Log</h2>
@@ -1146,6 +1162,32 @@
         <p class="plan-note" id="snapInfo" style="margin:12px 0 0;"></p>
         <div class="set-sec">Storage health</div>
         <p class="plan-note" id="storageInfo" style="margin:0;">Checking…</p>
+
+        <div class="set-sec">☁️ Cloud Sync</div>
+        <p class="plan-note" style="margin:0 0 12px;">Sync your data to a private cloud row so it survives browser eviction and follows you across devices. Uses your own free <b>Supabase</b> project — your data stays yours. <a href="#" id="cloudHelpLink" style="color:var(--accent);">Setup steps →</a></p>
+
+        <div id="cloudSetup">
+          <div class="field" style="margin:0 0 8px;"><label for="cloudUrl">Supabase Project URL</label><input id="cloudUrl" placeholder="https://xxxx.supabase.co" autocomplete="off" /></div>
+          <div class="field" style="margin:0 0 10px;"><label for="cloudKey">Supabase anon key</label><input id="cloudKey" placeholder="eyJhbGci… (safe to paste — it's the public key)" autocomplete="off" /></div>
+          <div class="row-actions" style="margin-top:0;"><button class="btn secondary mini" id="cloudSaveKeys">Save connection</button></div>
+        </div>
+
+        <div id="cloudAuth" style="display:none;">
+          <div class="field" style="margin:0 0 8px;"><label for="cloudEmail">Your email (magic-link sign in)</label><input id="cloudEmail" type="email" placeholder="you@email.com" autocomplete="email" /></div>
+          <div class="row-actions" style="margin-top:0;">
+            <button class="btn mini" id="cloudSendLink">Send sign-in link</button>
+            <button class="btn secondary mini" id="cloudForget">Change project</button>
+          </div>
+        </div>
+
+        <div id="cloudConnected" style="display:none;">
+          <p class="plan-note" id="cloudStatus" style="margin:0 0 10px;"></p>
+          <div class="row-actions" style="margin-top:0;">
+            <button class="btn mini" id="cloudSyncNow">⟳ Sync now</button>
+            <button class="btn secondary mini" id="cloudSignOut">Sign out</button>
+          </div>
+        </div>
+        <p class="plan-note" id="cloudMsg" style="margin:10px 0 0;"></p>
       </div>
     </div>
   </section>
@@ -1450,6 +1492,15 @@
       <button class="icon-btn" id="workoutCloseBtn" title="Close">✕</button>
     </div>
     <div class="modal-body modal-scroll">
+      <div class="rest-bar" id="restBar">
+        <span class="rest-label">⏱ Rest</span>
+        <button type="button" class="btn secondary mini" data-rest="60">1:00</button>
+        <button type="button" class="btn secondary mini" data-rest="90">1:30</button>
+        <button type="button" class="btn secondary mini" data-rest="120">2:00</button>
+        <span class="rest-display" id="restDisplay"></span>
+        <button type="button" class="btn ghost" id="restStop" style="display:none;" title="Stop timer">✕</button>
+      </div>
+      <datalist id="exNames"></datalist>
       <form id="form">
         <input type="hidden" id="editId" />
         <div class="grid">
@@ -2071,6 +2122,82 @@
     renderQuote();
   });
 
+  /* ---------- exercise intelligence: names, last-time recall, e1RM, PRs ---------- */
+  const e1rm = (w, r) => { const wt = Number(w), rp = Number(r); return wt > 0 && rp > 0 ? Math.round(wt * (1 + rp / 30)) : 0; };
+  function strengthNameList() {
+    const seen = new Map(); // lowercase -> first-seen casing
+    workouts.forEach((w) => (w.exercises || []).forEach((x) => {
+      const n = (x.name || "").trim();
+      if (n && x.mode !== "cardio" && !seen.has(n.toLowerCase())) seen.set(n.toLowerCase(), n);
+    }));
+    return [...seen.values()].sort((a, b) => a.localeCompare(b));
+  }
+  function lastPerformance(name, excludeId) {
+    const key = (name || "").trim().toLowerCase();
+    if (!key) return null;
+    const w = workouts
+      .filter((x) => x.id !== excludeId && x.date && (x.exercises || []).some((ex) => ex.mode !== "cardio" && (ex.name || "").trim().toLowerCase() === key))
+      .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    if (!w) return null;
+    const ex = w.exercises.find((x) => x.mode !== "cardio" && (x.name || "").trim().toLowerCase() === key);
+    const sets = (ex.sets || []).filter((st) => String(st.reps).trim() !== "" || String(st.weight).trim() !== "");
+    return sets.length ? { date: w.date, sets } : null;
+  }
+  function bestE1rm(name, excludeId) {
+    const key = (name || "").trim().toLowerCase();
+    if (!key) return 0;
+    let best = 0;
+    workouts.forEach((w) => {
+      if (w.id === excludeId) return;
+      (w.exercises || []).forEach((ex) => {
+        if (ex.mode === "cardio" || (ex.name || "").trim().toLowerCase() !== key) return;
+        (ex.sets || []).forEach((st) => { best = Math.max(best, e1rm(st.weight, st.reps)); });
+      });
+    });
+    return best;
+  }
+
+  /* ---------- toast ---------- */
+  let toastTimer = null;
+  function showToast(msg) {
+    let el = $("toast");
+    if (!el) { el = document.createElement("div"); el.id = "toast"; el.className = "toast"; document.body.appendChild(el); }
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 5000);
+  }
+
+  /* ---------- rest timer ---------- */
+  let restInt = null, restLeft = 0;
+  function stopRest(silent) {
+    clearInterval(restInt); restInt = null; restLeft = 0;
+    $("restDisplay").textContent = ""; $("restDisplay").classList.remove("done");
+    $("restStop").style.display = "none";
+    if (!silent && navigator.vibrate) navigator.vibrate(0);
+  }
+  function tickRest() {
+    restLeft--;
+    if (restLeft <= 0) {
+      clearInterval(restInt); restInt = null;
+      $("restDisplay").textContent = "GO!"; $("restDisplay").classList.add("done");
+      if (navigator.vibrate) navigator.vibrate([250, 120, 250]);
+      setTimeout(() => { if (!restInt) stopRest(true); }, 4000);
+      return;
+    }
+    $("restDisplay").textContent = `${Math.floor(restLeft / 60)}:${String(restLeft % 60).padStart(2, "0")}`;
+  }
+  document.querySelectorAll("#restBar [data-rest]").forEach((b) =>
+    b.addEventListener("click", () => {
+      stopRest(true);
+      restLeft = Number(b.dataset.rest) + 1;
+      $("restStop").style.display = "";
+      tickRest();
+      restInt = setInterval(tickRest, 1000);
+    })
+  );
+  $("restStop").addEventListener("click", () => stopRest(true));
+
   /* ---------- exercise editor ---------- */
   let exDraft = [];
   const distUnit = () => (profile.unit === "kg" ? "km" : "mi");
@@ -2131,12 +2258,24 @@
       const placeholder = mode === "cardio" ? "Cardio (e.g. Treadmill, Bike, Run)" : "Exercise / machine (e.g. Leg Press)";
       const eqToggle = mode === "cardio" ? "" :
         `<button type="button" class="eq-btn ${ex.machine ? "active" : ""}" data-ex="${i}" title="Mark this as a machine (vs. free weight)">⚙️ Machine</button>`;
+      // "last time" recall: what you did the previous session with this exercise, plus best e1RM to beat
+      let lastHtml = "";
+      if (mode === "strength" && (ex.name || "").trim()) {
+        const last = lastPerformance(ex.name, $("editId").value);
+        if (last) {
+          const d = asDate(last.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+          const setsStr = last.sets.map((st) => `${st.weight || 0}×${st.reps || 0}`).join(", ");
+          const best = bestE1rm(ex.name, $("editId").value);
+          lastHtml = `<div class="ex-last">Last (${esc(d)}): <b>${esc(setsStr)}</b>${best ? ` · best e1RM <b>${best} ${esc(profile.unit)}</b>` : ""}<button type="button" class="btn secondary mini use-last" data-ex="${i}">Use last sets</button></div>`;
+        }
+      }
       return `
         <div class="ex-block" data-mode="${mode}" data-machine="${ex.machine ? 1 : 0}">
           <div class="ex-head">
-            <input class="ex-name-input" data-field="exname" placeholder="${placeholder}" value="${esc(ex.name || "")}" />
+            <input class="ex-name-input" data-field="exname" list="exNames" placeholder="${placeholder}" value="${esc(ex.name || "")}" />
             <button type="button" class="btn ghost ex-del" data-ex="${i}">Remove</button>
           </div>
+          ${lastHtml}
           ${toggle}${eqToggle}
           ${body}
         </div>`;
@@ -2182,6 +2321,11 @@
       const i = +t.dataset.ex;
       if (exDraft[i]) exDraft[i].mode = t.dataset.mode === "cardio" ? "cardio" : "strength";
       renderExEditor();
+    } else if (t.classList.contains("use-last")) {
+      syncExDraft();
+      const i = +t.dataset.ex;
+      const last = exDraft[i] && lastPerformance(exDraft[i].name, $("editId").value);
+      if (last) { exDraft[i].sets = last.sets.map((st) => ({ reps: st.reps ?? "", weight: st.weight ?? "" })); renderExEditor(); }
     } else if (t.classList.contains("add-ex")) { syncExDraft(); exDraft.push(blankExercise()); renderExEditor(); }
     else if (t.classList.contains("add-set")) {
       syncExDraft();
@@ -2199,6 +2343,11 @@
       if (exDraft[i]) exDraft[i].sets.splice(+t.dataset.set, 1);
       renderExEditor();
     }
+  });
+
+  // refresh the "last time" line when an exercise name is entered or picked from the autocomplete
+  $("exEditor").addEventListener("change", (e) => {
+    if (e.target.matches && e.target.matches('[data-field="exname"]')) { syncExDraft(); renderExEditor(); }
   });
 
   // Global +/- stepper for all .num-field controls (static and dynamic)
@@ -2219,11 +2368,17 @@
     field.dispatchEvent(new Event("input", { bubbles: true })); // keep listeners (recipe/food recompute) in sync
   });
 
-  function openWorkoutModal() { $("workoutOverlay").classList.add("open"); }
-  function closeWorkoutModal() { $("workoutOverlay").classList.remove("open"); }
+  function openWorkoutModal() {
+    $("exNames").innerHTML = strengthNameList().map((n) => `<option value="${esc(n)}">`).join("");
+    $("workoutOverlay").classList.add("open");
+  }
+  function closeWorkoutModal() { stopRest(true); $("workoutOverlay").classList.remove("open"); }
+
+  let planPendingSid = null; // set when the modal was opened from a Weekly Plan "Log Session"
 
   function resetForm() {
     $("form").reset();
+    planPendingSid = null;
     $("editId").value = "";
     $("date").value = dayKey(new Date());
     $("formTitle").textContent = "Log a Workout";
@@ -2248,9 +2403,34 @@
       duration: $("duration").value, intensity: $("intensity").value, notes: $("notes").value.trim(),
       exercises,
     };
+    // PR check BEFORE saving: compare each strength lift's best e1RM against all history (needs a prior record to count)
+    const prs = [];
+    entry.exercises.forEach((ex) => {
+      if (ex.mode === "cardio" || !ex.name) return;
+      const newBest = (ex.sets || []).reduce((m, st) => Math.max(m, e1rm(st.weight, st.reps)), 0);
+      if (!newBest) return;
+      const oldBest = bestE1rm(ex.name, entry.id);
+      if (oldBest && newBest > oldBest) prs.push(`${ex.name}: e1RM ${newBest} ${profile.unit} (prev ${oldBest})`);
+    });
     const nextW = $("editId").value ? workouts.map((w) => (w.id === entry.id ? entry : w)) : workouts.concat([entry]);
-    if (save(nextW)) { workouts = nextW; resetForm(); closeWorkoutModal(); render(); }
+    if (save(nextW)) {
+      workouts = nextW;
+      if (planPendingSid && planState && !planState.logged[planPendingSid]) {
+        planState.logged[planPendingSid] = entry.id;
+        savePlanState();
+      }
+      resetForm(); closeWorkoutModal(); render();
+      if (prs.length) showToast("🎉 New PR! " + prs.join(" · "));
+    }
   });
+
+  function repeatWorkout(id) {
+    edit(id); // prefills the whole form + exercises
+    $("editId").value = "";                  // …but save as a NEW entry
+    $("date").value = dayKey(new Date());    // …dated today
+    $("formTitle").textContent = "Repeat Workout";
+    $("submitBtn").textContent = "Add Workout";
+  }
 
   $("openWorkoutBtn").addEventListener("click", () => { resetForm(); openWorkoutModal(); });
   $("workoutCloseBtn").addEventListener("click", () => { resetForm(); closeWorkoutModal(); });
@@ -2333,6 +2513,55 @@
   const setCount = (w) => hasExercises(w)
     ? w.exercises.reduce((s, ex) => s + (ex.sets ? ex.sets.length : 0), 0)
     : (Number(w.sets) || 0);
+
+  /* ---------- weekly sets-per-muscle (12–20 sets/muscle/week from the plan's research) ---------- */
+  // first match wins — ordered so specific names (leg curl, RDL) don't fall into generic buckets (curl, deadlift)
+  const MUSCLE_RULES = [
+    ["Quads",      /squat|leg press|lunge|leg extension|hack|step[- ]?up/i],
+    ["Hamstrings", /rdl|romanian|leg curl|hamstring|good ?morning|nordic/i],
+    ["Glutes",     /hip thrust|glute|bridge|kickback/i],
+    ["Calves",     /calf/i],
+    ["Shoulders",  /overhead press|ohp|shoulder|lateral raise|delt|military|face pull|upright row/i],
+    ["Chest",      /bench|chest|pec|fly|push[- ]?up|dip|incline/i],
+    ["Back",       /row|pulldown|pull[- ]?up|chin[- ]?up|\blat\b|deadlift|shrug|back extension/i],
+    ["Triceps",    /tricep|pushdown|skull|close[- ]?grip/i],
+    ["Biceps",     /curl|bicep/i],
+    ["Core",       /plank|crunch|\babs?\b|leg raise|core|sit[- ]?up|russian|hollow/i],
+  ];
+  const muscleOf = (name) => { const rule = MUSCLE_RULES.find(([, re]) => re.test(name || "")); return rule ? rule[0] : "Other"; };
+  function renderMuscleWeek() {
+    const el = $("muscleWeek");
+    if (!el) return;
+    const sow = startOfWeek();
+    const counts = {};
+    workouts.forEach((w) => {
+      if (!w.date || asDate(w.date) < sow) return;
+      (w.exercises || []).forEach((ex) => {
+        if (ex.mode === "cardio" || !(ex.sets || []).length) return;
+        const m = muscleOf(ex.name);
+        counts[m] = (counts[m] || 0) + ex.sets.length;
+      });
+    });
+    if (!Object.keys(counts).length) {
+      el.innerHTML = `<div class="empty">No strength sets logged this week yet — bars fill in as you log exercises.</div>`;
+      return;
+    }
+    const SCALE = 25; // bar maxes at 25 sets; the 12–20 target band sits at 48–80%
+    const names = MUSCLE_RULES.map(([n]) => n).concat(counts.Other ? ["Other"] : []);
+    el.innerHTML = names.map((n) => {
+      const c = counts[n] || 0;
+      const color = n === "Other" ? "var(--faint)" : c < 12 ? "var(--m-carb)" : c <= 20 ? "var(--accent-2)" : "var(--danger)";
+      return `
+      <div class="muscle-row">
+        <span class="mr-name">${n}</span>
+        <div class="muscle-track">
+          <div class="mt-band"></div>
+          <div class="mt-fill" style="width:${Math.min(100, (c / SCALE) * 100)}%;background:${color};"></div>
+        </div>
+        <span class="mr-count">${c}</span>
+      </div>`;
+    }).join("");
+  }
 
   function currentStreak() {
     if (!workouts.length) return 0;
@@ -2472,6 +2701,7 @@
     renderPlans();
     renderNutrition();
     renderExerciseProgress();
+    renderMuscleWeek();
     renderBackupBanner();
   }
 
@@ -2751,6 +2981,7 @@
             <div class="entry-meta">${dateStr} · ${esc(w.type)}</div>
           </div>
           <div class="entry-actions">
+            <button class="iconbtn" title="Repeat this workout today" onclick="repeatWorkout('${w.id}')">⟳</button>
             <button class="iconbtn" title="Edit" onclick="edit('${w.id}')">✎</button>
             <button class="iconbtn danger" title="Delete" onclick="del('${w.id}')">🗑</button>
           </div>
@@ -3463,25 +3694,24 @@
     if (ensurePlanWeek()) { render(); return; }
     const p = getPlan().find((x) => x.id === sid);
     if (!p || planState.logged[sid]) return;
-    const dur = $("planDur-" + sid) ? $("planDur-" + sid).value : "";
+    // open the workout modal prefilled with the session's exercises (checked ones, or all
+    // if none checked) so real sets/reps/weights get captured — no more empty shell entries
     const checks = planState.checks[sid] || [];
-    const doneNames = p.ex.filter((e, i) => checks.includes(i)).map((e) => e.n);
-    const entry = {
-      id: String(Date.now()),
-      name: p.name, type: p.type, date: dayKey(new Date()),
-      duration: dur, sets: "", reps: "", weight: "", intensity: "",
-      notes: doneNames.length ? "Weekly Plan — completed: " + doneNames.join(", ") : "Weekly Plan session",
-    };
-    workouts.push(entry);
-    if (!save(workouts)) { workouts.pop(); return; }
-    planState.logged[sid] = entry.id;
-    if (!savePlanState()) { // keep the two stores atomic: roll the workout back out
-      delete planState.logged[sid];
-      workouts.pop();
-      save(workouts);
-      return;
-    }
-    render();
+    const chosen = checks.length ? p.ex.filter((e, i) => checks.includes(i)) : p.ex;
+    const isCardioName = (n) => /bike|run\b|walk|swim|cardio|treadmill|elliptical|zone/i.test(n);
+    resetForm();
+    $("name").value = p.name;
+    $("type").value = p.type;
+    $("duration").value = $("planDur-" + sid) ? $("planDur-" + sid).value : "";
+    $("notes").value = "Weekly Plan — " + p.day;
+    exDraft = chosen.map((e) => isCardioName(e.n)
+      ? { mode: "cardio", name: e.n, machine: false, sets: [], duration: "", distance: "" }
+      : { mode: "strength", name: e.n, machine: false, sets: [blankSet()], duration: "", distance: "" });
+    if (!exDraft.length) exDraft = [blankExercise()];
+    renderExEditor();
+    planPendingSid = sid; // form submit marks this session logged
+    $("formTitle").textContent = `Log Session — ${p.day}`;
+    openWorkoutModal();
   }
 
   function planUnlog(sid) {
@@ -3663,26 +3893,9 @@
   function mealQuickAdd(slot) { mealResetForm(); setMealSlot(slot); openMealModal(); }
 
   function renderNutrition() {
-    const today = dayKey(new Date());
-    const tProt = nutTotalsOn(today).prot;
-    const target = proteinTarget();
-
     renderTodayHero();
     renderSlotRows();
     $("nutStats").innerHTML = nutStatsHtml();
-
-    if (target) {
-      const pct = Math.min(100, Math.round((tProt / target) * 100));
-      $("protLabel").textContent = `Protein today — ${pct}%`;
-      $("protCount").textContent = `${Math.round(tProt)} / ${target} g`;
-      $("protBar").style.width = pct + "%";
-      $("protHint").textContent = pct >= 100 ? "🎯 Target hit — nice work." : `${target - Math.round(tProt)} g to go. Aim for 25–40 g per meal, every 3–4 hours.`;
-    } else {
-      $("protLabel").textContent = "Protein today";
-      $("protCount").textContent = `${Math.round(tProt)} g`;
-      $("protBar").style.width = "0%";
-      $("protHint").textContent = "Set your bodyweight in ⚙️ Settings to get a protein target (~1 g per lb — the research-backed recomp anchor).";
-    }
 
     $("recipeList").innerHTML = nut.recipes.length
       ? nut.recipes.map((r) => {
@@ -4589,6 +4802,179 @@
     }
   });
 
+  /* ============================================================
+     CLOUD SYNC (Supabase) — local-first: localStorage stays the working store;
+     this layer mirrors it to a private cloud row. Any failure is caught and the
+     app keeps running exactly as offline. Config/session/meta are device-local
+     and deliberately NOT in DATA_KEYS, so they never sync into the data bundle.
+     ============================================================ */
+  const CLOUD_CFG = "gymTracker.cloud.cfg.v1";   // {url, key, email}
+  const CLOUD_SESS = "gymTracker.cloud.sess.v1"; // {access_token, refresh_token, expires_at, email}
+  const CLOUD_META = "gymTracker.cloud.meta.v1"; // {localRev, pushedRev, remoteUpdatedAt, lastSync}
+  const cloud = (() => {
+    const _set = localStorage.setItem.bind(localStorage);
+    const _remove = localStorage.removeItem.bind(localStorage);
+    const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v && typeof v === "object" ? v : d; } catch { return d; } };
+    let cfg = readJSON(CLOUD_CFG, null);
+    let sess = readJSON(CLOUD_SESS, null);
+    let meta = readJSON(CLOUD_META, { localRev: 0, pushedRev: 0, remoteUpdatedAt: "", lastSync: 0 });
+    let applyingRemote = false, syncing = false, pushTimer = null;
+    const saveMeta = () => { try { _set(CLOUD_META, JSON.stringify(meta)); } catch (e) {} };
+    const saveCfg = () => { try { cfg ? _set(CLOUD_CFG, JSON.stringify(cfg)) : _remove(CLOUD_CFG); } catch (e) {} };
+    const saveSess = (s) => { sess = s; try { s ? _set(CLOUD_SESS, JSON.stringify(s)) : _remove(CLOUD_SESS); } catch (e) {} };
+
+    const jwtSub = (t) => { try { const p = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"); return JSON.parse(decodeURIComponent(escape(atob(p)))).sub; } catch (e) { return null; } };
+    const msg = (m) => { const el = $("cloudMsg"); if (el) el.textContent = m || ""; };
+    const setStatus = (m) => { const el = $("cloudStatus"); if (el) el.textContent = m || ""; };
+
+    // ---- keys of localStorage that count as "data" (a write means we should push) ----
+    const EXCLUDE = new Set([CLOUD_CFG, CLOUD_SESS, CLOUD_META, LBKEY, NAGKEY, SNAPKEY, "gymTracker.fileWarnDismissed.v1"]);
+    const isDataKey = (k) => typeof k === "string" && k.indexOf("gymTracker.") === 0 && !EXCLUDE.has(k);
+    function bump() { meta.localRev = (meta.localRev || 0) + 1; saveMeta(); schedulePush(); }
+    // wrap set/removeItem so every data change flags a push — no edits needed in the 13 save functions
+    localStorage.setItem = function (k, v) { _set(k, v); if (!applyingRemote && isDataKey(k)) bump(); };
+    localStorage.removeItem = function (k) { _remove(k); if (!applyingRemote && isDataKey(k)) bump(); };
+
+    function schedulePush() { if (!cfg || !sess) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => syncNow("auto"), 2500); }
+
+    async function getToken() {
+      if (!sess) return null;
+      if (Date.now() < (sess.expires_at || 0) - 60000) return sess.access_token;
+      const r = await fetch(`${cfg.url}/auth/v1/token?grant_type=refresh_token`, {
+        method: "POST", headers: { apikey: cfg.key, "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: sess.refresh_token }),
+      });
+      if (!r.ok) { saveSess(null); renderUI(); throw new Error("session expired — sign in again"); }
+      const j = await r.json();
+      saveSess({ access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in || 3600) * 1000, email: (j.user && j.user.email) || sess.email });
+      return sess.access_token;
+    }
+    async function pull(token) {
+      const r = await fetch(`${cfg.url}/rest/v1/sync_data?select=bundle,updated_at`, { headers: { apikey: cfg.key, Authorization: "Bearer " + token } });
+      if (!r.ok) throw new Error("pull " + r.status);
+      return (await r.json())[0] || null;
+    }
+    async function push(token, bundle) {
+      const uid = jwtSub(token);
+      const r = await fetch(`${cfg.url}/rest/v1/sync_data`, {
+        method: "POST",
+        headers: { apikey: cfg.key, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ user_id: uid, bundle }),
+      });
+      if (!r.ok) throw new Error("push " + r.status);
+      return (await r.json())[0] || null;
+    }
+
+    async function syncNow(reason) {
+      if (!cfg || !sess || syncing) return;
+      syncing = true; setStatus("Syncing…");
+      try {
+        const token = await getToken();
+        if (!token) { syncing = false; return; }
+        const remote = await pull(token);
+        const remoteNewer = remote && remote.updated_at && remote.updated_at !== meta.remoteUpdatedAt &&
+          (!meta.remoteUpdatedAt || Date.parse(remote.updated_at) > Date.parse(meta.remoteUpdatedAt));
+        if (remoteNewer) {
+          // another device wrote something newer than we've applied → take it (last-write-wins)
+          applyingRemote = true;
+          const ok = applyBackup(remote.bundle);
+          applyingRemote = false;
+          meta.remoteUpdatedAt = remote.updated_at; meta.pushedRev = meta.localRev; meta.lastSync = Date.now(); saveMeta();
+          setStatus(statusText());
+          if (ok) { showToast("☁️ Synced newer data from another device — reloading…"); setTimeout(() => location.reload(), 1200); return; }
+        } else if (!remote || meta.localRev > meta.pushedRev) {
+          // we have local changes (or the cloud is empty) → push our copy up
+          const res = await push(token, collectAll());
+          if (res) { meta.remoteUpdatedAt = res.updated_at; meta.pushedRev = meta.localRev; }
+        }
+        meta.lastSync = Date.now(); saveMeta();
+        setStatus(statusText());
+      } catch (e) {
+        setStatus("⚠ Sync paused — will retry. (" + (e.message || e) + ")");
+      }
+      syncing = false;
+    }
+
+    function statusText() {
+      if (!sess) return "";
+      const ago = meta.lastSync ? Math.round((Date.now() - meta.lastSync) / 1000) : null;
+      const when = ago == null ? "not yet" : ago < 60 ? `${ago}s ago` : ago < 3600 ? `${Math.round(ago / 60)}m ago` : `${Math.round(ago / 3600)}h ago`;
+      const pending = meta.localRev > meta.pushedRev ? " · unsynced changes pending" : "";
+      return `✓ Signed in as ${sess.email || "you"} · last sync ${when}${pending}`;
+    }
+
+    // ---- magic-link redirect: Supabase returns tokens in the URL hash ----
+    function captureRedirect() {
+      if (!location.hash || location.hash.indexOf("access_token") === -1) return false;
+      const p = new URLSearchParams(location.hash.slice(1));
+      const at = p.get("access_token"), rt = p.get("refresh_token"), ei = p.get("expires_in");
+      if (at && rt) {
+        saveSess({ access_token: at, refresh_token: rt, expires_at: Date.now() + (Number(ei) || 3600) * 1000, email: (cfg && cfg.email) || "" });
+        // pull the signed-in user's email for display (best effort)
+        fetch(`${cfg.url}/auth/v1/user`, { headers: { apikey: cfg.key, Authorization: "Bearer " + at } })
+          .then((r) => r.ok ? r.json() : null).then((u) => { if (u && u.email) { sess.email = u.email; saveSess(sess); renderUI(); } }).catch(() => {});
+        try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { location.hash = ""; }
+        return true;
+      }
+      return false;
+    }
+
+    function renderUI() {
+      const setup = $("cloudSetup"), auth = $("cloudAuth"), conn = $("cloudConnected");
+      if (!setup) return;
+      const hasCfg = !!(cfg && cfg.url && cfg.key), hasSess = !!sess;
+      setup.style.display = hasCfg ? "none" : "";
+      auth.style.display = hasCfg && !hasSess ? "" : "none";
+      conn.style.display = hasSess ? "" : "none";
+      if (hasCfg && !hasSess && cfg.email) $("cloudEmail").value = cfg.email;
+      setStatus(statusText());
+    }
+
+    function init() {
+      renderUI();
+      const justSignedIn = cfg ? captureRedirect() : false;
+      if (justSignedIn) renderUI();
+      if (cfg && sess) {
+        syncNow("load");
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) syncNow("focus"); });
+        window.addEventListener("online", () => syncNow("online"));
+      }
+    }
+
+    // ---- settings buttons ----
+    function wire() {
+      $("cloudSaveKeys").addEventListener("click", () => {
+        const url = $("cloudUrl").value.trim().replace(/\/+$/, "");
+        const key = $("cloudKey").value.trim();
+        if (!/^https:\/\/.+\.supabase\.co$/.test(url)) { msg("That doesn't look like a Supabase URL (https://xxxx.supabase.co)."); return; }
+        if (key.length < 30) { msg("That anon key looks too short — copy the full key from Supabase → Settings → API."); return; }
+        cfg = { url, key, email: (cfg && cfg.email) || "" }; saveCfg(); msg("Connection saved. Now sign in with your email."); renderUI();
+      });
+      $("cloudForget").addEventListener("click", () => { cfg = null; saveCfg(); saveSess(null); meta = { localRev: meta.localRev || 0, pushedRev: 0, remoteUpdatedAt: "", lastSync: 0 }; saveMeta(); msg(""); renderUI(); });
+      $("cloudSendLink").addEventListener("click", async () => {
+        const email = $("cloudEmail").value.trim();
+        if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { msg("Enter a valid email address."); return; }
+        cfg.email = email; saveCfg();
+        msg("Sending…");
+        try {
+          const r = await fetch(`${cfg.url}/auth/v1/otp?redirect_to=${encodeURIComponent(location.href.split("#")[0])}`, {
+            method: "POST", headers: { apikey: cfg.key, "Content-Type": "application/json" }, body: JSON.stringify({ email, create_user: true }),
+          });
+          msg(r.ok ? "✉️ Check your email for the sign-in link, then open it on this device." : "Couldn't send the link (" + r.status + "). Double-check the URL/key and that Email auth is enabled in Supabase.");
+        } catch (e) { msg("Network error sending the link: " + (e.message || e)); }
+      });
+      $("cloudSignOut").addEventListener("click", () => { saveSess(null); msg("Signed out. Your local data is untouched."); renderUI(); });
+      $("cloudSyncNow").addEventListener("click", () => syncNow("manual"));
+      $("cloudHelpLink").addEventListener("click", (e) => {
+        e.preventDefault();
+        alert("Set up cloud sync (once, ~5 min):\n\n1. Go to supabase.com → sign up (free) → New project. Pick any name/password; wait for it to finish.\n\n2. Open the SQL Editor, paste the snippet Claude gave you, and click Run. (Creates your private sync table.)\n\n3. Go to Authentication → Providers and make sure Email is enabled.\n\n4. Go to Authentication → URL Configuration and add this page's web address to 'Redirect URLs' (and set it as Site URL).\n\n5. Go to Project Settings → API. Copy the 'Project URL' and the 'anon public' key into the boxes here, Save, then sign in with your email.");
+      });
+    }
+
+    return { init, wire, renderUI };
+  })();
+  cloud.wire();
+
   /* ---------- go ---------- */
   quoteIndex = dayOfYear() % QUOTES.length;
   $("date").value = dayKey(new Date());
@@ -4660,6 +5046,7 @@
     });
   }
   render();
+  cloud.init(); // start cloud sync last, once local state + DOM are ready
 </script>
 </body>
 </html>
