@@ -255,6 +255,8 @@
   .wt-chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; }
   .wt-chip:hover { border-color: var(--accent); }
   .wt-chip:active { background: var(--accent); color: #fff; }
+  .pulse-chips { display: flex; gap: 6px; }
+  .pulse-chips .pulse-on { border-color: var(--accent); background: var(--accent); color: #fff; }
   /* plate calculator */
   .plate-card { margin-bottom: 16px; }
   .plate-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -814,6 +816,16 @@
     <div class="card">
       <h2 class="section" id="recentTitle">Recent Workouts</h2>
       <div id="recentList"></div>
+    </div>
+
+    <!-- Training Pulse: 8 weeks of training, switchable metric -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <h2 class="section" style="margin:0;">📈 Training Pulse</h2>
+        <div class="pulse-chips" id="pulseChips"></div>
+      </div>
+      <div id="pulseChart" style="margin-top:10px;"></div>
+      <p class="plan-note" id="pulseNote" style="margin:6px 0 0;"></p>
     </div>
   </section>
 
@@ -2882,10 +2894,43 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   /* ---------- master render ---------- */
+  // ---- Training Pulse: last 8 weeks, switchable metric --------------------
+  let pulseMetric = "workouts";
+  const PULSE_METRICS = [
+    { k: "workouts", label: "Workouts", of: (ws) => ws.length },
+    { k: "sets", label: "Sets", of: (ws) => ws.reduce((s, w) => s + (w.exercises || []).reduce((x, ex) => x + (ex.sets || []).length, 0), 0) },
+    { k: "minutes", label: "Minutes", of: (ws) => ws.reduce((s, w) => s + (Number(w.duration) || 0), 0) },
+  ];
+  function setPulseMetric(k) { pulseMetric = k; renderPulse(); }
+  function renderPulse() {
+    const el = $("pulseChart");
+    if (!el) return;
+    const m = PULSE_METRICS.find((x) => x.k === pulseMetric) || PULSE_METRICS[0];
+    $("pulseChips").innerHTML = PULSE_METRICS.map((x) =>
+      `<button class="btn secondary mini${x.k === pulseMetric ? " pulse-on" : ""}" onclick="setPulseMetric('${x.k}')">${x.label}</button>`).join("");
+    // 8 week buckets, oldest → newest
+    const weeks = [];
+    for (let i = 7; i >= 0; i--) {
+      const start = startOfWeek(); start.setDate(start.getDate() - i * 7);
+      const s = dayKey(start);
+      const end = new Date(start); end.setDate(end.getDate() + 7);
+      const e = dayKey(end);
+      const ws = workouts.filter((w) => w.date >= s && w.date < e);
+      weeks.push({ label: `wk of ${s.slice(5)}`, short: s.slice(5), value: m.of(ws) });
+    }
+    el.innerHTML = svgBars(weeks, "var(--c1)");
+    const vals = weeks.map((w) => w.value);
+    const thisW = vals[vals.length - 1], best = Math.max(...vals);
+    $("pulseNote").textContent = best
+      ? (thisW >= best && thisW > 0 ? `This week is your biggest of the 8 — ${thisW} ${m.label.toLowerCase()}. 🔥` : `This week: ${thisW} ${m.label.toLowerCase()} · best of the 8: ${best}.`)
+      : "Log workouts and this chart wakes up.";
+  }
+
   function render() {
     applyProfile();
     renderQuote();
     renderDashboard();
+    renderPulse();
     renderLogStats();
     renderList();
     renderBP();
