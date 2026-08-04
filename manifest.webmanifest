@@ -1,7 +1,7 @@
 {
-  "name": "Gym Tracker",
-  "short_name": "Gym Tracker",
-  "description": "Workouts, blood pressure, streaks, weekly plan, and nutrition — your whole training life in one place.",
+  "name": "Virtus",
+  "short_name": "Virtus",
+  "description": "Virtus — workouts, blood pressure, streaks, weekly plan, and nutrition. Strength proven daily.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

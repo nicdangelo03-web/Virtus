@@ -1,5 +1,5 @@
-/* Gym Tracker service worker — cache-first so the app works offline once installed. */
-const CACHE = "gym-tracker-v2";
+/* Virtus service worker — cache-first so the app works offline once installed. */
+const CACHE = "virtus-v3"; // bumped so every installed copy drops the old cache and picks up the rename
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-180.png"];
 
 self.addEventListener("install", (e) => {
