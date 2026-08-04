@@ -249,6 +249,26 @@
   .num-field .step-btn:last-child { border-radius: 0 8px 8px 0; border-left: none; }
   .num-field .step-btn:hover { background: var(--border); }
   .num-field .step-btn:active { background: var(--accent); color: #fff; }
+  /* one-tap recent-weight chips above the weigh-in input */
+  .wt-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .wt-chips:empty { display: none; }
+  .wt-chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .wt-chip:hover { border-color: var(--accent); }
+  .wt-chip:active { background: var(--accent); color: #fff; }
+  /* plate calculator */
+  .plate-card { margin-bottom: 16px; }
+  .plate-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .plate-inputs { display: flex; gap: 8px; align-items: center; }
+  .plate-out { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .plate-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+  .plate-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 6px; border-radius: 50%; font-weight: 800; font-size: 13px; color: #0b0d12; background: var(--accent); border: 2px solid rgba(255,255,255,.25); }
+  .plate-chip.p45 { background: #4d79ff; color: #fff; }
+  .plate-chip.p35 { background: #ffd166; }
+  .plate-chip.p25 { background: #37c978; }
+  .plate-chip.p10 { background: #e8e8ef; }
+  .plate-chip.p5  { background: #ff9f67; }
+  .plate-chip.p2_5 { background: #c9a2ff; }
+  .plate-note b { color: var(--text); }
 
   /* ===== Exercise editor ===== */
   #exEditor { margin-top: 2px; }
@@ -809,6 +829,27 @@
 
     <div class="stats" id="logStats"></div>
 
+    <!-- Plate calculator: type the target, read the plates per side -->
+    <div class="card plate-card">
+      <div class="plate-head">
+        <h2 class="section" style="margin:0;">🏋️ Plate Calculator</h2>
+        <div class="plate-inputs">
+          <div class="num-field" style="width:150px;">
+            <button type="button" class="step-btn" data-step="-5" tabindex="-1">−</button>
+            <input id="plateTarget" type="number" step="any" min="0" placeholder="Target" />
+            <button type="button" class="step-btn" data-step="5" tabindex="-1">+</button>
+          </div>
+          <select id="plateBar" style="width:auto;">
+            <option value="45">45 lb bar</option>
+            <option value="35">35 lb bar</option>
+            <option value="25">25 lb bar</option>
+            <option value="0">No bar (total)</option>
+          </select>
+        </div>
+      </div>
+      <div id="plateOut" class="plate-out">Enter a target weight — I'll tell you what to load per side.</div>
+    </div>
+
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
         <h2 class="section" style="margin:0;">Exercise Progress</h2>
@@ -912,10 +953,11 @@
             <input type="hidden" id="wtTod" />
           </div>
           <div class="field"><label for="wtInput">Weight (<span class="unit">lbs</span>)</label>
+            <div class="wt-chips" id="wtChips"></div>
             <div class="num-field">
-              <button type="button" class="step-btn" data-step="-0.5" tabindex="-1">−</button>
+              <button type="button" class="step-btn" data-step="-0.1" tabindex="-1">−</button>
               <input id="wtInput" type="number" step="any" min="1" placeholder="e.g. 180" required />
-              <button type="button" class="step-btn" data-step="0.5" tabindex="-1">+</button>
+              <button type="button" class="step-btn" data-step="0.1" tabindex="-1">+</button>
             </div>
           </div>
           <button type="submit" class="btn" style="width:100%;">Log Weigh-in</button>
@@ -2561,6 +2603,29 @@
     $("submitBtn").textContent = "Add Workout";
   }
 
+  // ---- plate calculator: greedy fill from standard plates, per side ----
+  const PLATE_SIZES = [45, 35, 25, 10, 5, 2.5];
+  function renderPlateCalc() {
+    const out = $("plateOut");
+    if (!out) return;
+    const target = Number($("plateTarget").value);
+    const bar = Number($("plateBar").value);
+    if (!target) { out.innerHTML = "Enter a target weight — I'll tell you what to load per side."; return; }
+    if (target < bar) { out.innerHTML = `That's lighter than the bar (${bar} lbs) — use dumbbells or an empty bar.`; return; }
+    let perSide = (target - bar) / 2;
+    const plates = [];
+    let rem = perSide;
+    for (const p of PLATE_SIZES) { while (rem >= p - 0.001) { plates.push(p); rem -= p; } }
+    const loaded = target - rem * 2;
+    const chips = plates.length
+      ? plates.map((p) => `<span class="plate-chip p${String(p).replace(".", "_")}">${p}</span>`).join("")
+      : `<span class="muted">empty bar</span>`;
+    out.innerHTML = `<div class="plate-row">${chips}</div>
+      <div class="plate-note">${plates.length ? `per side, ${bar ? `on the ${bar} lb bar` : "no bar"} = <b>${loaded}</b> lbs` : `just the bar = <b>${bar}</b> lbs`}${rem > 0.001 ? ` <span class="muted">(${(rem * 2).toFixed(1)} lbs short of ${target} — smallest plate is 2.5)</span>` : ""}</div>`;
+  }
+  $("plateTarget").addEventListener("input", renderPlateCalc);
+  $("plateBar").addEventListener("change", renderPlateCalc);
+
   $("openWorkoutBtn").addEventListener("click", () => { resetForm(); openWorkoutModal(); });
   $("workoutCloseBtn").addEventListener("click", () => { resetForm(); closeWorkoutModal(); });
   $("cancelBtn").addEventListener("click", () => { resetForm(); closeWorkoutModal(); });
@@ -3830,10 +3895,18 @@
     if (sel) {
       sel.innerHTML = Object.entries(SPLITS).map(([k, s]) => `<option value="${k}" ${getSplitChoice() === k ? "selected" : ""}>${s.label}</option>`).join("");
     }
-    // "what should I do today" banner
+    // "what should I do today" banner — follows YOUR sequence, not the
+    // calendar: the day after the last session you logged/completed this
+    // week. Fresh week (nothing logged) falls back to the weekday mapping,
+    // so missing a day never skips a workout in the split.
     const nw = $("nextWorkout");
     if (nw) {
-      const idx = todaySlot();
+      let lastDone = -1;
+      plan.forEach((p2, i) => {
+        const done = planState.logged[p2.id] || ((planState.checks[p2.id] || []).length >= p2.ex.length && p2.ex.length);
+        if (done) lastDone = Math.max(lastDone, i);
+      });
+      const idx = lastDone < 0 ? todaySlot() : Math.min(lastDone + 1, plan.length - 1);
       const p = plan[idx];
       const checks = (planState.checks[p.id] || []);
       const isRest = /rest|recovery/i.test(p.name) && p.ex.length <= 1;
@@ -4039,8 +4112,19 @@
         <span class="m-name">${esc(m.name)}</span>
         ${dateStr}
         <span class="macro-pills">${pills.join("")}</span>
+        <button class="btn secondary mini" title="Log this meal again today" onclick="mealRepeat('${m.id}')">⟳</button>
         <button class="btn secondary mini" onclick="mealEdit('${m.id}')">Edit</button>
       </div>`;
+  }
+
+  // one-tap "ate this again": clone the meal onto today at the current slot
+  function mealRepeat(id) {
+    const m = nut.meals.find((x) => x.id === id);
+    if (!m) return;
+    const copy = { ...m, id: String(Date.now()), date: dayKey(new Date()), slot: defaultSlot() };
+    nut.meals = nut.meals.concat([copy]);
+    if (saveNut()) { render(); showToast(`🍽 ${copy.name} logged for today`); }
+    else nut.meals = nut.meals.filter((x) => x.id !== copy.id);
   }
 
   /* "Today" hero — calorie ring + macro rings (Vesper-style) */
@@ -4626,8 +4710,29 @@
     sortedWeighins().forEach((w) => rows.push([w.date, TOD[w.tod] ? TOD[w.tod].label : "", w.weight]));
     downloadBlob("weight-log.csv", toCsv(rows), "text/csv");
   });
+  // one-tap recent weights above the input: tap 175 then + + + for 175.3
+  function renderWtChips() {
+    const el = $("wtChips");
+    if (!el) return;
+    const seen = new Set(), chips = [];
+    for (const w of sortedWeighins().slice().reverse()) { // newest first
+      const v = Math.round(Number(w.weight) * 10) / 10;
+      if (!v || seen.has(v)) continue;
+      seen.add(v); chips.push(v);
+      if (chips.length >= 6) break;
+    }
+    el.innerHTML = chips.map((v) => `<button type="button" class="wt-chip" data-wt="${v}">${v}</button>`).join("");
+  }
+  $("wtChips").addEventListener("click", (e) => {
+    const b = e.target.closest(".wt-chip");
+    if (!b) return;
+    $("wtInput").value = b.dataset.wt;
+    $("wtInput").focus();
+  });
+
   function renderWeight() {
     if (!$("wtStats")) return;
+    renderWtChips();
     const u = esc(profile.unit);
     if (!weighins.length) {
       $("wtStats").innerHTML = "";
