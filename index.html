@@ -407,6 +407,29 @@
   .backup-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(255,159,67,.12); border-bottom: 1px solid rgba(255,159,67,.35); color: var(--text); font-size: 13px; padding: 10px 18px; }
   .backup-banner .bb-actions { display: flex; gap: 8px; flex-shrink: 0; }
   @media (max-width: 760px) { .backup-banner { padding: 9px 12px; font-size: 12.5px; } }
+
+  /* ===== Bigger, faster-to-fill logging forms (meals & workouts) =====
+     Larger tap targets and type everywhere, so logging is quick and easy. */
+  .modal-body label, .food-builder label { font-size: 12px; letter-spacing: .6px; margin-bottom: 8px; color: var(--muted); }
+  .modal-body input, .modal-body select, .modal-body textarea,
+  .food-builder input, .food-builder select { font-size: 16px; padding: 13px 14px; border-radius: 12px; min-height: 50px; }
+  .modal-body textarea { min-height: 76px; }
+  .modal-body .field { margin-bottom: 20px; }
+  .modal-body .btn, .food-builder .btn { padding: 13px 18px; font-size: 15px; min-height: 50px; border-radius: 12px; }
+  .modal-body .btn.mini, .food-builder .btn.mini { padding: 11px 16px; font-size: 14px; min-height: 46px; }
+  .modal-head { padding: 18px 20px; }
+  /* workout set rows: taller, roomier, centered numbers */
+  .set-labels, .set-row { grid-template-columns: 34px 1fr 1fr 34px; gap: 9px; }
+  .set-labels { font-size: 11px; }
+  .set-row { margin-bottom: 9px; }
+  .set-row input { min-height: 48px; font-size: 16px; text-align: center; }
+  /* meal builder: bigger picker + add button, roomier rows */
+  .food-builder { padding: 16px; }
+  .fb-macros { gap: 10px; }
+  .food-total { font-size: 14px; margin-top: 14px; padding-top: 14px; }
+  .meal-row { padding: 11px 0; }
+  .meal-row .m-name { font-size: 15px; }
+  .meal-row .btn { padding: 8px 12px; font-size: 13px; min-height: 40px; }
   .file-warn { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(248,113,113,.14); border-bottom: 1px solid rgba(248,113,113,.4); color: var(--text); font-size: 12.5px; padding: 10px 18px; }
   .file-warn .btn { flex-shrink: 0; }
   .food-builder { border: 1px solid var(--border-strong); border-radius: 12px; padding: 12px; background: var(--panel-2); }
