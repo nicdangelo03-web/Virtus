@@ -1256,27 +1256,33 @@
 <div class="overlay" id="streakOverlay">
   <div class="modal modal-lg">
     <div class="modal-head">
-      <h3>Add a Streak</h3>
+      <h3 id="stModalTitle">Add a Streak</h3>
       <button class="icon-btn" id="streakCloseBtn" title="Close">✕</button>
     </div>
     <div class="modal-body modal-scroll">
       <form id="stForm">
+        <input type="hidden" id="stMode" value="create" />
+        <input type="hidden" id="stTargetId" value="" />
         <div class="grid">
-          <div class="full">
+          <div class="full" id="stNameWrap">
             <label for="stName">What are you quitting / tracking?</label>
             <input id="stName" placeholder="e.g. Alcohol, Porn, Nicotine, Junk food" required />
           </div>
           <div>
-            <label for="stStart">Streak start date</label>
+            <label for="stStart" id="stStartLbl">Streak start date</label>
             <input id="stStart" type="date" required />
           </div>
           <div>
             <label for="stTime">Start time (the clock counts from this moment)</label>
             <input id="stTime" type="time" required />
           </div>
+          <div class="full" id="stNoteWrap" style="display:none">
+            <label for="stNote">What happened right before? (optional — your most useful data)</label>
+            <textarea id="stNote" placeholder="The trigger, where you were, how you felt…"></textarea>
+          </div>
         </div>
         <div class="row-actions">
-          <button type="submit" class="btn">Start Tracking</button>
+          <button type="submit" class="btn" id="stSubmitBtn">Start Tracking</button>
           <button type="button" class="btn secondary" id="streakCancelBtn">Cancel</button>
         </div>
       </form>
@@ -3674,7 +3680,8 @@
             <span>Since: <b>${esc(sinceStr)}</b></span>
           </div>
           <div class="s-actions">
-            <button class="s-slip" onclick="stReset('${s.id}')">💔 I slipped</button>
+            <button class="s-slip" onclick="openStreakReset('${s.id}')">💔 I slipped</button>
+            <button class="iconbtn" onclick="openStreakEdit('${s.id}')" title="Edit start date/time">✏️</button>
             <button class="iconbtn danger" onclick="stDel('${s.id}')" title="Delete streak">🗑</button>
           </div>
         </div>`;
@@ -3699,8 +3706,41 @@
     });
   }, 1000);
 
-  function stResetForm() { $("stForm").reset(); $("stStart").value = dayKey(new Date()); $("stStart").max = dayKey(new Date()); $("stTime").value = nowTime(); }
+  function stResetForm() {
+    $("stForm").reset();
+    $("stMode").value = "create"; $("stTargetId").value = "";
+    $("stModalTitle").textContent = "Add a Streak";
+    $("stSubmitBtn").textContent = "Start Tracking";
+    $("stStartLbl").textContent = "Streak start date";
+    $("stNameWrap").style.display = ""; $("stNoteWrap").style.display = "none";
+    $("stStart").value = dayKey(new Date()); $("stStart").max = dayKey(new Date()); $("stTime").value = nowTime();
+  }
   function openStreakModal() { stResetForm(); $("streakOverlay").classList.add("open"); }
+  // Edit an existing streak's start moment — the simplest "start it a day ago".
+  function openStreakEdit(id) {
+    const s = streaks.find((x) => x.id === id); if (!s) return;
+    stResetForm();
+    $("stMode").value = "edit"; $("stTargetId").value = id;
+    $("stModalTitle").textContent = "Edit start date & time";
+    $("stSubmitBtn").textContent = "Save";
+    $("stName").value = s.name;
+    $("stStart").value = s.start || dayKey(new Date());
+    $("stTime").value = /^\d{2}:\d{2}$/.test(s.startTime) ? s.startTime : nowTime();
+    $("streakOverlay").classList.add("open");
+  }
+  // Reset ("I slipped") but let the user say WHEN — so a slip yesterday can
+  // restart the clock from yesterday, not from now.
+  function openStreakReset(id) {
+    const s = streaks.find((x) => x.id === id); if (!s) return;
+    stResetForm();
+    $("stMode").value = "reset"; $("stTargetId").value = id;
+    $("stModalTitle").textContent = `Reset “${s.name}” — when did it happen?`;
+    $("stSubmitBtn").textContent = "💔 Reset streak";
+    $("stStartLbl").textContent = "New streak starts (default now — set it earlier if you slipped before)";
+    $("stNameWrap").style.display = "none"; $("stName").value = s.name; // keep validation happy
+    $("stNoteWrap").style.display = "";
+    $("streakOverlay").classList.add("open");
+  }
   function closeStreakModal() { $("streakOverlay").classList.remove("open"); }
   $("openStreakBtn").addEventListener("click", openStreakModal);
   $("streakCloseBtn").addEventListener("click", closeStreakModal);
@@ -3733,27 +3773,31 @@
 
   $("stForm").addEventListener("submit", (e) => {
     e.preventDefault();
+    const mode = $("stMode").value || "create";
     let start = $("stStart").value, startTime = $("stTime").value;
-    // clamp a future start moment (e.g. today at a later time) to right now
+    // never allow a future start moment — clamp it to right now
     if (new Date(`${start}T${startTime || "00:00"}:00`).getTime() > Date.now()) { start = dayKey(new Date()); startTime = nowTime(); }
-    streaks.push(normalizeStreak({ id: String(Date.now()), name: $("stName").value.trim(), start, startTime, best: 0, resets: [] }));
-    if (saveStreaks(streaks)) { stResetForm(); closeStreakModal(); render(); }
-    else streaks.pop();
-  });
 
-  function stReset(id) {
-    const s = streaks.find((x) => x.id === id);
-    if (!s) return;
-    const note = prompt("What happened right before? (optional — this is your most useful data)") || "";
-    const days = streakDays(s);
-    const snap = { best: s.best, start: s.start, startTime: s.startTime, resetsLen: s.resets.length };
-    s.best = Math.max(s.best, days);
-    s.resets.push({ date: dayKey(new Date()), days, note: note.trim() });
-    s.start = dayKey(new Date());
-    s.startTime = nowTime();
-    if (saveStreaks(streaks)) render();
-    else { s.best = snap.best; s.start = snap.start; s.startTime = snap.startTime; s.resets.length = snap.resetsLen; }
-  }
+    if (mode === "create") {
+      streaks.push(normalizeStreak({ id: String(Date.now()), name: $("stName").value.trim(), start, startTime, best: 0, resets: [] }));
+      if (saveStreaks(streaks)) { stResetForm(); closeStreakModal(); render(); } else streaks.pop();
+      return;
+    }
+    const s = streaks.find((x) => x.id === $("stTargetId").value);
+    if (!s) { stResetForm(); closeStreakModal(); return; }
+    const snap = JSON.parse(JSON.stringify(s)); // rollback point if save fails
+    if (mode === "edit") {
+      s.name = $("stName").value.trim() || s.name;
+      s.start = start; s.startTime = startTime;
+    } else { // reset — count the days up to the slip, then restart from the chosen moment
+      const days = streakDays(s);
+      s.best = Math.max(s.best, days);
+      s.resets.push({ date: dayKey(new Date()), days, note: ($("stNote").value || "").trim() });
+      s.start = start; s.startTime = startTime;
+    }
+    if (saveStreaks(streaks)) { stResetForm(); closeStreakModal(); render(); }
+    else { Object.assign(s, snap); }
+  });
   function stDel(id) {
     if (!confirm("Delete this streak and its history?")) return;
     streaks = streaks.filter((x) => x.id !== id);
