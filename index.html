@@ -5344,12 +5344,25 @@
 
   /* ---------- go ---------- */
   quoteIndex = dayOfYear() % QUOTES.length;
-  $("date").value = dayKey(new Date());
-  $("date").max = dayKey(new Date());
-  $("bpDate").value = dayKey(new Date());
-  $("bpDate").max = dayKey(new Date());
-  $("wtDate").value = dayKey(new Date());
-  $("wtDate").max = dayKey(new Date());
+  // Date fields: NO max (log any day you like — a max stamped at page load
+  // used to block "today" once the tab crossed midnight), and defaults that
+  // re-freshen whenever the tab wakes up, so a tab left open overnight
+  // doesn't quietly prefill yesterday.
+  const freshenDates = () => {
+    const t = dayKey(new Date());
+    for (const id of ["date", "bpDate", "wtDate"]) {
+      const el = $(id);
+      if (!el) continue;
+      el.removeAttribute("max");
+      // only touch the value if it's still whatever we auto-filled last —
+      // never overwrite a date the user picked on purpose
+      if (!el.value || el.value === el.dataset.autofilled) el.value = t;
+      el.dataset.autofilled = t;
+    }
+  };
+  freshenDates();
+  window.addEventListener("focus", freshenDates);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) freshenDates(); });
   setWtTod(defaultTod());
   $("bpFilterCat").innerHTML = `<option value="">All categories</option>` + BP_CATS.map((c) => `<option value="${c.key}">${esc(c.label)}</option>`).join("");
   $("stStart").value = dayKey(new Date());
