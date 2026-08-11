@@ -652,6 +652,15 @@
   .muscle-track .mt-band { position: absolute; left: 48%; width: 32%; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent-2) 14%, transparent); }
   .muscle-track .mt-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
 
+  /* ===== Recurring (weekly/monthly) habits share the grid — cadence + due status under the name ===== */
+  .hg-habitname.recur { white-space: normal; overflow: visible; text-overflow: clip; height: auto; padding-top: 5px; padding-bottom: 5px; line-height: 1.2; }
+  .hg-habitname .hg-hnrow { display: block; }
+  .hg-hcad { display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; white-space: normal; }
+  .hg-hcad.over { color: var(--danger); }
+  .hg-hcad.today { color: var(--accent); }
+  .hg-hcad.soon { color: var(--m-carb); }
+  .hg-hcad.ok { color: var(--accent-2); }
+
   /* ===== Mobile bottom tab bar ===== */
   .tabbar { display: none; }
   .more-sheet { display: none; position: fixed; inset: 0; background: rgba(5,7,10,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 240; }
@@ -1120,7 +1129,7 @@
     <div class="page-head">
       <div>
         <h1 class="page-title">Habits</h1>
-        <p class="page-sub" style="margin-bottom:0;">Check off your daily habits — pills, vitamins, brushing teeth, whatever keeps you 1% better. Tap the circle when it's done.</p>
+        <p class="page-sub" style="margin-bottom:0;">Check off daily habits on the grid, or track weekly/monthly recurring things — like a shot due once a month — with a next-due date. Tap the circle when it's done.</p>
       </div>
       <button class="btn" id="openHabitBtn">+ Add Habit</button>
     </div>
@@ -1294,6 +1303,20 @@
             <label for="hIcon">Icon</label>
             <input id="hIcon" placeholder="💊" maxlength="4" style="max-width:110px;" />
             <div class="emoji-picks" id="hEmojiPicks"></div>
+          </div>
+          <div class="full">
+            <label>How often?</label>
+            <div class="mode-toggle" id="hFreqToggle">
+              <button type="button" class="mode-btn active" data-freq="daily">📆 Daily</button>
+              <button type="button" class="mode-btn" data-freq="weekly">🗓 Weekly</button>
+              <button type="button" class="mode-btn" data-freq="monthly">📅 Monthly</button>
+            </div>
+            <input type="hidden" id="hFreq" value="daily" />
+            <p class="plan-note" id="hFreqNote" style="margin:8px 0 0;">Daily habits show on the check-off grid. Weekly/monthly ones become a recurring reminder with a next-due date.</p>
+          </div>
+          <div class="full" id="hNextWrap" style="display:none;">
+            <label for="hNextDue">Next due date <span style="font-weight:400;color:var(--muted)">— when's it next due? (e.g. your next shot). Logging it rolls this forward.</span></label>
+            <input id="hNextDue" type="date" style="max-width:220px;" />
           </div>
         </div>
         <div class="row-actions">
@@ -1990,6 +2013,8 @@
         id: safeId(d.id != null ? d.id : Date.now()),
         name: String(d.name != null ? d.name : ""),
         icon: String(d.icon != null && String(d.icon).trim() ? d.icon : "✅"),
+        freq: ["daily", "weekly", "monthly"].includes(d.freq) ? d.freq : "daily", // recurrence cadence
+        nextDue: typeof d.nextDue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.nextDue) ? d.nextDue : "", // for weekly/monthly
       })) : [];
       const log = o.log && typeof o.log === "object" && !Array.isArray(o.log) ? o.log : {};
       return { defs, log };
@@ -2133,6 +2158,20 @@
       { name: "Legs", focus: "Full lower body", ex: [
         { n: "Back Squat", rx: "4×8 @RPE 8" }, { n: "Romanian Deadlift", rx: "3×10" }, { n: "Leg Press", rx: "3×12" }, { n: "Leg Curl", rx: "3×12" }, { n: "Standing Calf Raise", rx: "4×15" } ] },
       { name: "Active Recovery", focus: "Sport, hike, mobility — your call", ex: [
+        { n: "Walk / Sport / Mobility", rx: "your call" } ] },
+    ] },
+    pplul: { label: "PPL / UL — 5 day", days: [
+      { name: "Push", focus: "From your video: 3 chest / 2 delt / 2 tricep", ex: [
+        { n: "Bench Press", rx: "4×6-8 @RPE 8" }, { n: "Incline DB Press", rx: "3×10" }, { n: "Cable Fly", rx: "3×12" }, { n: "Seated DB Shoulder Press", rx: "3×10" }, { n: "Lateral Raise", rx: "3×15" }, { n: "Triceps Pushdown", rx: "3×12" }, { n: "Overhead Triceps Extension", rx: "3×12" } ] },
+      { name: "Pull", focus: "From your video: 3 back / 1 rear delt / 1 trap / 2 bicep", ex: [
+        { n: "Lat Pulldown or Pull-ups", rx: "4×8" }, { n: "Barbell Row", rx: "3×8 @RPE 8" }, { n: "Seated Cable Row", rx: "3×10" }, { n: "Rear Delt Fly", rx: "3×15" }, { n: "DB Shrug", rx: "3×12" }, { n: "Barbell Curl", rx: "3×10" }, { n: "Hammer Curl", rx: "3×12" } ] },
+      { name: "Legs", focus: "From your video: 4 quad / 1 ham / 1 calf / 1 ab", ex: [
+        { n: "Back Squat", rx: "4×6 @RPE 8" }, { n: "Leg Press", rx: "3×10" }, { n: "Leg Extension", rx: "3×12" }, { n: "Walking Lunge", rx: "3×10/leg" }, { n: "Leg Curl", rx: "3×12" }, { n: "Standing Calf Raise", rx: "4×15" }, { n: "Hanging Leg Raise", rx: "3×12" } ] },
+      { name: "Upper", focus: "From your video: 2 chest / 2 back / 2 shoulder / 1 bicep / 1 tricep", ex: [
+        { n: "Incline Bench Press", rx: "4×8 @RPE 8" }, { n: "Cable Fly", rx: "3×12" }, { n: "Lat Pulldown", rx: "4×10" }, { n: "Chest-supported Row", rx: "3×10" }, { n: "Overhead Press", rx: "3×8" }, { n: "Lateral Raise", rx: "3×15" }, { n: "EZ-bar Curl", rx: "3×12" }, { n: "Skullcrusher", rx: "3×12" } ] },
+      { name: "Lower", focus: "From your video: 2 ham / 2 quad / 1 calf / 1 ab", ex: [
+        { n: "Romanian Deadlift", rx: "4×8 @RPE 8" }, { n: "Leg Curl", rx: "3×12" }, { n: "Front Squat or Hack Squat", rx: "4×10" }, { n: "Leg Extension", rx: "3×12" }, { n: "Seated Calf Raise", rx: "4×15" }, { n: "Cable Crunch", rx: "3×15" } ] },
+      { name: "Rest / Active Recovery", focus: "5 training days done — walk, sport, mobility, or nothing", ex: [
         { n: "Walk / Sport / Mobility", rx: "your call" } ] },
     ] },
     upperlower: { label: "Upper / Lower — 4 day", days: [
@@ -3601,6 +3640,9 @@
     const day = habits.log[key] || (habits.log[key] = {});
     if (day[id]) delete day[id]; else day[id] = 1;
     if (!Object.keys(day).length) delete habits.log[key];
+    // recurring habits: next-due rolls forward from the latest logged date (or clears if all logs removed)
+    const h = habits.defs.find((x) => x.id === id);
+    if (h && isRecurring(h)) { const last = recurLastDone(id); h.nextDue = last ? recurInterval(h, last) : ""; }
     if (saveHabits()) render();
   }
   function habitToggle(id) { habitToggleDate(id, dayKey(new Date())); }
@@ -3636,25 +3678,54 @@
     </svg>`;
   }
 
+  /* ---------- recurring (weekly / monthly) habits ---------- */
+  const isRecurring = (h) => h.freq === "weekly" || h.freq === "monthly";
+  const addDaysKey = (key, days) => { const d = asDate(key); d.setDate(d.getDate() + days); return dayKey(d); };
+  const addMonthsKey = (key, months) => {
+    const d = asDate(key), day = d.getDate();
+    d.setDate(1); d.setMonth(d.getMonth() + months);
+    d.setDate(Math.min(day, daysInMonth(d.getFullYear(), d.getMonth()))); // clamp (e.g. Jan 31 → Feb 28)
+    return dayKey(d);
+  };
+  const recurInterval = (h, key) => (h.freq === "monthly" ? addMonthsKey(key, 1) : addDaysKey(key, 7));
+  // every date this habit was logged, oldest→newest
+  const recurHistory = (id) => Object.keys(habits.log).filter((k) => habits.log[k] && habits.log[k][id]).sort();
+  const recurLastDone = (id) => { const h = recurHistory(id); return h.length ? h[h.length - 1] : ""; };
+  // effective next-due: rolled forward from the latest logged date, else the user-set seed date
+  const recurNext = (h) => { const last = recurLastDone(h.id); return last ? recurInterval(h, last) : (h.nextDue || ""); };
+  // status label + severity class from a next-due date
+  function dueStatus(nextDue) {
+    if (!nextDue) return { cls: "today", txt: "log it" };
+    const today = dayKey(new Date());
+    const diff = Math.round((asDate(nextDue) - asDate(today)) / 86400000);
+    if (diff < 0) return { cls: "over", txt: `overdue ${-diff}d` };
+    if (diff === 0) return { cls: "today", txt: "due today" };
+    if (diff <= 3) return { cls: "soon", txt: `due in ${diff}d` };
+    return { cls: "ok", txt: `due in ${diff}d` };
+  }
+
   function renderHabits() {
     if (!habitMonth) { const n = new Date(); habitMonth = { y: n.getFullYear(), m: n.getMonth() }; }
     const { y, m } = habitMonth;
-    const defs = habits.defs;
+    const allDefs = habits.defs;                                  // every habit is a grid row
+    const dailyDefs = allDefs.filter((h) => !isRecurring(h));     // …but only daily habits feed the %/rings
     const todayKey = dayKey(new Date());
 
-    // month label + today pill (always shown)
+    // month label + today pill
     $("habMonthLabel").textContent = new Date(y, m, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
-    const doneToday = defs.filter((h) => habitDone(h.id, todayKey)).length;
-    $("habTodayPill").innerHTML = defs.length
-      ? (doneToday === defs.length ? `🎯 ${doneToday}/${defs.length} done today` : `✅ ${doneToday}/${defs.length} today`)
-      : "";
+    if (dailyDefs.length) {
+      const doneToday = dailyDefs.filter((h) => habitDone(h.id, todayKey)).length;
+      $("habTodayPill").innerHTML = doneToday === dailyDefs.length ? `🎯 ${doneToday}/${dailyDefs.length} done today` : `✅ ${doneToday}/${dailyDefs.length} today`;
+    } else {
+      const due = allDefs.filter((h) => isRecurring(h) && recurNext(h) && recurNext(h) <= todayKey).length;
+      $("habTodayPill").innerHTML = due ? `⏰ ${due} due` : "";
+    }
 
-    if (!defs.length) {
-      $("habGridWrap").innerHTML = `<div class="empty">No habits yet. Hit <b>+ Add Habit</b> to track pills, vitamins, brushing teeth — anything you want to do daily. ✅</div>`;
+    if (!allDefs.length) {
+      $("habGridWrap").innerHTML = `<div class="empty">No habits yet. Hit <b>+ Add Habit</b> to track pills, vitamins, a monthly shot — anything daily, weekly, or monthly. ✅</div>`;
       $("habWeeklyCard").style.display = "none";
       return;
     }
-    $("habWeeklyCard").style.display = "";
 
     const nDays = daysInMonth(y, m);
     const days = Array.from({ length: nDays }, (_, i) => i + 1);
@@ -3666,11 +3737,12 @@
       const dow = dt.getDay();
       return { day, dow, wd: WD[dow], weekend: dow === 0 || dow === 6, key: habKey(y, m, day), future: habKey(y, m, day) > todayKey, color: colorOf(day) };
     });
-    const doneCountOn = (key) => defs.reduce((s, h) => s + (habitDone(h.id, key) ? 1 : 0), 0);
+    const doneCountOn = (key) => dailyDefs.reduce((s, h) => s + (habitDone(h.id, key) ? 1 : 0), 0);
 
-    // ----- top bar strip: daily completion % -----
+    // ----- top bar strip: daily completion % (only when there are daily habits) -----
     const barCells = dayMeta.map((d) => {
-      const pct = Math.round((doneCountOn(d.key) / defs.length) * 100);
+      if (!dailyDefs.length) return `<td class="hg-daycell"></td>`;
+      const pct = Math.round((doneCountOn(d.key) / dailyDefs.length) * 100);
       return `<td class="hg-daycell"><div class="hg-bar-wrap"><div class="hg-bar" style="height:${Math.max(3, pct)}%;background:${d.color};opacity:${d.future ? .25 : 1}"><span class="hg-barpct">${pct}%</span></div></div></td>`;
     }).join("");
 
@@ -3687,16 +3759,24 @@
     const dayNumCells = dayMeta.map((d) => `<td class="hg-daynum ${d.weekend ? "weekend" : ""} ${d.key === todayKey ? "istoday" : ""}">${d.day}</td>`).join("");
     const wdCells = dayMeta.map((d) => `<td class="hg-wd ${d.weekend ? "weekend" : ""}">${d.wd}</td>`).join("");
 
-    // ----- one row per habit -----
-    const habitRows = defs.map((h) => {
+    // ----- one row per habit (daily + recurring share the grid) -----
+    const habitRows = allDefs.map((h) => {
       const cells = dayMeta.map((d) => {
         const on = habitDone(h.id, d.key);
         return `<td class="hg-cell ${on ? "done" : ""} ${d.weekend ? "weekend" : ""} ${d.future ? "future" : ""} ${d.key === todayKey ? "istoday" : ""}"
           onclick="habitToggleDate('${h.id}','${d.key}')" title="${esc(h.name)} · ${d.key}">
           <span class="hg-dot" style="${on ? `background:${d.color};` : ""}"></span></td>`;
       }).join("");
+      // recurring habits get a cadence chip + due-status under the name (mark the day you did it)
+      let sub = "";
+      if (isRecurring(h)) {
+        const st = dueStatus(recurNext(h));
+        sub = `<span class="hg-hcad ${st.cls}">${h.freq === "monthly" ? "Monthly" : "Weekly"} · ${st.txt}</span>`;
+      }
       return `<tr>
-        <td class="hg-habitname" onclick="habitEdit('${h.id}')" title="Edit habit"><span class="hg-hi">${esc(h.icon)}</span><span class="hg-hn">${esc(h.name)}</span></td>
+        <td class="hg-habitname ${isRecurring(h) ? "recur" : ""}" onclick="habitEdit('${h.id}')" title="Edit habit">
+          <span class="hg-hnrow"><span class="hg-hi">${esc(h.icon)}</span><span class="hg-hn">${esc(h.name)}</span></span>${sub}
+        </td>
         ${cells}
       </tr>`;
     }).join("");
@@ -3710,14 +3790,16 @@
         ${habitRows}
       </table>`;
 
-    // ----- weekly progress rings -----
+    // ----- weekly progress rings (daily-habit adherence; hidden when no daily habits) -----
+    if (!dailyDefs.length) { $("habWeeklyCard").style.display = "none"; return; }
+    $("habWeeklyCard").style.display = "";
     let weekly = "", wk = 0;
     while (wk * 7 < nDays) {
       const start = wk * 7 + 1, end = Math.min(nDays, wk * 7 + 7);
       const len = end - start + 1;
       let done = 0;
       for (let day = start; day <= end; day++) done += doneCountOn(habKey(y, m, day));
-      const total = defs.length * len;
+      const total = dailyDefs.length * len;
       const pct = total ? (done / total) * 100 : 0;
       const col = WEEK_COLORS[wk % WEEK_COLORS.length];
       weekly += `<div class="hab-week">
@@ -3756,9 +3838,25 @@
   function fillHabitEmoji() {
     $("hEmojiPicks").innerHTML = HABIT_EMOJI.map((e) => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="habitPickIcon('${e}')">${e}</button>`).join("");
   }
+  function setHabitFreq(freq) {
+    freq = ["daily", "weekly", "monthly"].includes(freq) ? freq : "daily";
+    $("hFreq").value = freq;
+    document.querySelectorAll("#hFreqToggle .mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.freq === freq));
+    $("hNextWrap").style.display = freq === "daily" ? "none" : "";
+    $("hFreqNote").textContent = freq === "daily"
+      ? "Shows as a row on the check-off grid — tap each day you do it."
+      : freq === "weekly"
+        ? "Shows on the grid with a weekly due badge — tap the day you do it and the next due date rolls 1 week out."
+        : "Shows on the grid with a monthly due badge — tap the day you take it and the next due date rolls 1 month out.";
+  }
+  document.querySelectorAll("#hFreqToggle .mode-btn").forEach((b) =>
+    b.addEventListener("click", () => setHabitFreq(b.dataset.freq))
+  );
   function habitResetForm() {
     $("habitForm").reset(); $("hEditId").value = "";
     habitPickIcon("💊");
+    setHabitFreq("daily");
+    $("hNextDue").value = "";
     $("habitFormTitle").textContent = "Add a Habit"; $("hSubmitBtn").textContent = "Add Habit";
     $("hDeleteBtn").style.display = "none";
   }
@@ -3767,6 +3865,7 @@
     if (!h) return;
     habitResetForm();
     $("hEditId").value = h.id; $("hName").value = h.name; habitPickIcon(h.icon);
+    setHabitFreq(h.freq); $("hNextDue").value = h.nextDue || "";
     $("habitFormTitle").textContent = "Edit Habit"; $("hSubmitBtn").textContent = "Save Changes";
     $("hDeleteBtn").style.display = "inline-block";
     openHabitModal();
@@ -3888,10 +3987,12 @@
     const name = $("hName").value.trim();
     if (!name) return;
     const icon = $("hIcon").value.trim() || "✅";
+    const freq = ["daily", "weekly", "monthly"].includes($("hFreq").value) ? $("hFreq").value : "daily";
+    const nextDue = freq === "daily" ? "" : ($("hNextDue").value || "");
     const id = $("hEditId").value;
     const prev = habits.defs;
-    if (id) habits.defs = habits.defs.map((h) => (h.id === id ? { ...h, name, icon } : h));
-    else habits.defs = habits.defs.concat([{ id: "h" + Date.now(), name, icon }]);
+    if (id) habits.defs = habits.defs.map((h) => (h.id === id ? { ...h, name, icon, freq, nextDue } : h));
+    else habits.defs = habits.defs.concat([{ id: "h" + Date.now(), name, icon, freq, nextDue }]);
     if (saveHabits()) { habitResetForm(); closeHabitModal(); render(); }
     else habits.defs = prev;
   });
@@ -4881,9 +4982,10 @@
   }
   // quick tappable habit chips on the dashboard (pills, vitamins, teeth…) — mirrors the Habits page
   function dashHabitChips() {
-    if (!habits.defs.length) return "";
+    const dailyDefs = habits.defs.filter((h) => !isRecurring(h)); // recurring habits live in their own Habits-page section
+    if (!dailyDefs.length) return "";
     const t = dayKey(new Date());
-    const chips = habits.defs.map((h) => {
+    const chips = dailyDefs.map((h) => {
       const on = habitDone(h.id, t);
       return `<button class="habit-chip ${on ? "on" : ""}" onclick="habitToggle('${h.id}')" title="${on ? "Done today — tap to undo" : "Mark done"}">${esc(h.icon)} ${esc(h.name)}${on ? " ✓" : ""}</button>`;
     }).join("");
