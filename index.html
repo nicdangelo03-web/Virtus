@@ -2424,7 +2424,11 @@
   let exDraft = [];
   const distUnit = () => (profile.unit === "kg" ? "km" : "mi");
   function blankSet() { return { reps: "", weight: "" }; }
-  function blankExercise() { return { mode: "strength", name: "", machine: false, sets: [blankSet()], duration: "", distance: "" }; }
+  // new strength exercises start at 3×8 so you only type what's different
+  function defaultSets() { return Array.from({ length: 3 }, () => ({ reps: "8", weight: "" })); }
+  function blankExercise() { return { mode: "strength", name: "", machine: false, sets: defaultSets(), duration: "", distance: "" }; }
+  // sets untouched since creation? (empty weights, reps blank or still the 8 default)
+  const setsPristine = (ex) => (ex.sets || []).every((st) => String(st.weight).trim() === "" && ["", "8"].includes(String(st.reps).trim()));
 
   function renderExEditor() {
     exDraft = exDraft.length ? exDraft : [blankExercise()];
@@ -2567,9 +2571,19 @@
     }
   });
 
-  // refresh the "last time" line when an exercise name is entered or picked from the autocomplete
+  // when an exercise name is entered/picked: if the sets are still the untouched 3×8 default,
+  // auto-fill last session's sets & weights so you only adjust what changed
   $("exEditor").addEventListener("change", (e) => {
-    if (e.target.matches && e.target.matches('[data-field="exname"]')) { syncExDraft(); renderExEditor(); }
+    if (!(e.target.matches && e.target.matches('[data-field="exname"]'))) return;
+    syncExDraft();
+    const blk = e.target.closest(".ex-block");
+    const i = [...$("exEditor").querySelectorAll(".ex-block")].indexOf(blk);
+    const ex = exDraft[i];
+    if (ex && ex.mode !== "cardio" && setsPristine(ex)) {
+      const last = lastPerformance(ex.name, $("editId").value);
+      if (last) ex.sets = last.sets.map((st) => ({ reps: st.reps ?? "", weight: st.weight ?? "" }));
+    }
+    renderExEditor();
   });
 
   // Global +/- stepper for all .num-field controls (static and dynamic)
@@ -4133,9 +4147,12 @@
     $("type").value = p.type;
     $("duration").value = $("planDur-" + sid) ? $("planDur-" + sid).value : "";
     $("notes").value = "Weekly Plan — " + p.day;
-    exDraft = chosen.map((e) => isCardioName(e.n)
-      ? { mode: "cardio", name: e.n, machine: false, sets: [], duration: "", distance: "" }
-      : { mode: "strength", name: e.n, machine: false, sets: [blankSet()], duration: "", distance: "" });
+    exDraft = chosen.map((e) => {
+      if (isCardioName(e.n)) return { mode: "cardio", name: e.n, machine: false, sets: [], duration: "", distance: "" };
+      const last = lastPerformance(e.n, "");
+      const sets = last ? last.sets.map((st) => ({ reps: st.reps ?? "", weight: st.weight ?? "" })) : defaultSets();
+      return { mode: "strength", name: e.n, machine: false, sets, duration: "", distance: "" };
+    });
     if (!exDraft.length) exDraft = [blankExercise()];
     renderExEditor();
     planPendingSid = sid; // form submit marks this session logged
